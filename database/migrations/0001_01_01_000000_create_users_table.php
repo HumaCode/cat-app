@@ -11,8 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('institutions', function (Blueprint $table) {
+            $table->ulid('id')->primary();
+            $table->string('name');
+            $table->string('slug')->unique()->nullable();
+            $table->string('subscription_plan')->default('starter'); // starter, professional, enterprise
+            $table->timestamp('subscription_ends_at')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUlid('institution_id')->nullable()->constrained('institutions')->nullOnDelete();
+            $table->string('role')->default('peserta'); // admin, proctor, peserta
             $table->string('name');
             $table->string('username')->unique();
             $table->string('email')->unique();
@@ -51,6 +62,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('institutions');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

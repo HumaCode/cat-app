@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'jenis_kelamin', 'alamat', 'telepon', 'tanggal_lahir', 'tempat_lahir', 'instansi', 'nip_nik'])]
+#[Fillable(['name', 'username', 'email', 'password', 'jenis_kelamin', 'alamat', 'telepon', 'tanggal_lahir', 'tempat_lahir', 'instansi', 'nip_nik', 'institution_id', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -41,5 +41,31 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the institution that owns the user.
+     */
+    public function institution()
+    {
+        return $this->belongsTo(Institution::class);
+    }
+
+    /**
+     * Role checking helpers.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isProctor(): bool
+    {
+        return $this->role === 'proctor';
+    }
+
+    public function isPeserta(): bool
+    {
+        return $this->role === 'peserta';
     }
 }

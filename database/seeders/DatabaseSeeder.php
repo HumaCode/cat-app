@@ -15,11 +15,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Buat Institusi Default
+        $institution = \App\Models\Institution::create([
+            'name' => 'Panitia Pusat Cerdas Cermat',
+            'slug' => 'panitia-pusat',
+            'subscription_plan' => 'professional',
+        ]);
 
+        // 2. Buat Admin User
+        User::factory()->admin()->create([
+            'name' => 'Admin Utama',
+            'username' => 'admin',
+            'email' => 'admin@example.com',
+            'institution_id' => $institution->id,
+        ]);
+
+        // 3. Buat Proctor User (Pengawas)
+        User::factory()->proctor()->create([
+            'name' => 'Pengawas Satu',
+            'username' => 'proctor',
+            'email' => 'proctor@example.com',
+            'institution_id' => $institution->id,
+        ]);
+
+        // 4. Buat Peserta User
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Peserta Ujian',
+            'username' => 'peserta',
+            'email' => 'peserta@example.com',
+            'institution_id' => $institution->id,
         ]);
     }
 }

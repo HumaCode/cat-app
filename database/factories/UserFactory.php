@@ -37,8 +37,29 @@ class UserFactory extends Factory
             'tempat_lahir' => fake()->city(),
             'instansi' => fake()->company(),
             'nip_nik' => fake()->numerify('################'),
+            'role' => 'peserta',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a proctor.
+     */
+    public function proctor(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'proctor',
+        ]);
     }
 
     /**
