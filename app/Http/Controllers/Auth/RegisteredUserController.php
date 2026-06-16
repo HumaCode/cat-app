@@ -37,13 +37,16 @@ class RegisteredUserController extends Controller
             'username' => 'required|string|lowercase|alpha_dash|max:255|unique:'.User::class,
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'plan' => 'nullable|string|in:starter,professional,enterprise',
         ]);
+
+        $plan = $request->input('plan', 'starter');
 
         // 1. Buat Institusi gratis (Starter Workspace) secara otomatis
         $institution = \App\Models\Institution::create([
             'name' => $request->institution_name,
             'slug' => \Illuminate\Support\Str::slug($request->institution_name . '-' . \Illuminate\Support\Str::random(4)),
-            'subscription_plan' => 'starter',
+            'subscription_plan' => $plan,
         ]);
 
         // 2. Buat User dengan role admin terikat ke institusi tersebut
@@ -57,6 +60,14 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        // 3. Jika memilih paket berbayar, alihkan ke Xendit Checkout Invoice
+        if (in_array($plan, ['professional', 'enterprise'])) {
+            $paymentUrl = \App\Services\XenditService::createInvoice($institution, $user, $plan);
+            if ($paymentUrl) {
+                return Inertia::location($paymentUrl);
+            }
+        }
 
         Auth::login($user);
 
