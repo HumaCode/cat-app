@@ -1,6 +1,7 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import type { PageProps } from '@/types';
 
-export default function Welcome() {
+export default function Welcome({ auth }: PageProps) {
     return (
         <>
             <Head title="Welcome" />
@@ -80,17 +81,31 @@ export default function Welcome() {
                                     </span>
                                 </li>
                             </ul>
-                            <ul className="flex gap-3 text-sm leading-normal">
-                                <li>
-                                    <a
-                                        href="https://cloud.laravel.com"
-                                        target="_blank"
+                            <div className="flex gap-3 text-sm leading-normal">
+                                {auth.user ? (
+                                    <Link
+                                        href={route('dashboard')}
                                         className="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
                                     >
-                                        Deploy now
-                                    </a>
-                                </li>
-                            </ul>
+                                        Dashboard
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link
+                                            href={route('login')}
+                                            className="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
+                                        >
+                                            Log in
+                                        </Link>
+                                        <Link
+                                            href={route('register')}
+                                            className="inline-block rounded-sm border border-[#e3e3e0] bg-white px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:bg-[#f3f3f0] dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC] dark:hover:bg-[#20201f]"
+                                        >
+                                            Register
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         <div className="relative -mb-px aspect-[335/364] w-full shrink-0 overflow-hidden rounded-t-lg bg-[#fff2f2] lg:mb-0 lg:-ml-px lg:aspect-auto lg:w-[438px] lg:rounded-t-none lg:rounded-r-lg dark:bg-[#1D0002]">
                             {/* Laravel Logo */}
