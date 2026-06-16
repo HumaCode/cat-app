@@ -45,5 +45,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'peserta@example.com',
             'institution_id' => $institution->id,
         ]);
+
+        // 5. Buat Developer User
+        User::factory()->admin()->create([
+            'name' => 'Developer',
+            'username' => 'dev',
+            'email' => 'dev@example.com',
+            'password' => bcrypt('123'),
+            'institution_id' => $institution->id,
+        ]);
     }
 }
