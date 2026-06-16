@@ -16,5 +16,11 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
+    
+    $user = auth()->user();
+    expect($user->role)->toBe('admin');
+    expect($user->institution_id)->not->toBeNull();
+    expect($user->institution->subscription_plan)->toBe('starter');
+
     $response->assertRedirect(route('dashboard', absolute: false));
 });

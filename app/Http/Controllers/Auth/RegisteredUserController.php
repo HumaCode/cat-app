@@ -38,11 +38,21 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // 1. Buat Institusi gratis (Starter Workspace) secara otomatis
+        $institution = \App\Models\Institution::create([
+            'name' => $request->name . ' Workspace',
+            'slug' => \Illuminate\Support\Str::slug($request->name . '-' . \Illuminate\Support\Str::random(4)),
+            'subscription_plan' => 'starter',
+        ]);
+
+        // 2. Buat User dengan role admin terikat ke institusi tersebut
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'institution_id' => $institution->id,
+            'role' => 'admin',
         ]);
 
         event(new Registered($user));
