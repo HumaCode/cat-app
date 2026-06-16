@@ -29,7 +29,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $request->validate([
             'name' => 'required|string|max:255',
