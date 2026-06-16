@@ -1,17 +1,17 @@
-import { Link, usePage, router } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState, useRef } from 'react';
 
 interface TopbarProps {
     onToggleSidebar: () => void;
     title?: string;
+    onTriggerLogout: () => void;
 }
 
-export default function Topbar({ onToggleSidebar, title = 'Dashboard' }: TopbarProps) {
+export default function Topbar({ onToggleSidebar, title = 'Dashboard', onTriggerLogout }: TopbarProps) {
     const { auth } = usePage().props as any;
     const user = auth?.user;
     const [dateStr, setDateStr] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -48,11 +48,6 @@ export default function Topbar({ onToggleSidebar, title = 'Dashboard' }: TopbarP
               .join('')
               .toUpperCase()
         : 'US';
-
-    const handleLogoutConfirm = () => {
-        setShowLogoutModal(false);
-        router.post(route('logout'));
-    };
 
     return (
         <header className="topbar">
@@ -113,7 +108,7 @@ export default function Topbar({ onToggleSidebar, title = 'Dashboard' }: TopbarP
                                 className="dropdown-item logout-btn"
                                 onClick={() => {
                                     setDropdownOpen(false);
-                                    setShowLogoutModal(true);
+                                    onTriggerLogout();
                                 }}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dropdown-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -123,27 +118,6 @@ export default function Topbar({ onToggleSidebar, title = 'Dashboard' }: TopbarP
                     )}
                 </div>
             </div>
-
-            {/* Custom Interactive Logout Modal */}
-            {showLogoutModal && (
-                <div className="modal-overlay" onClick={() => setShowLogoutModal(false)}>
-                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-icon-wrap">⚠️</div>
-                        <h3 className="modal-title">Konfirmasi Keluar</h3>
-                        <p className="modal-desc">
-                            Apakah Anda yakin ingin keluar dari <strong>CAT System</strong>? Sesi Anda akan berakhir dan Anda perlu login kembali.
-                        </p>
-                        <div className="modal-actions">
-                            <button className="btn-modal cancel" onClick={() => setShowLogoutModal(false)}>
-                                Batal
-                            </button>
-                            <button className="btn-modal confirm" onClick={handleLogoutConfirm}>
-                                Ya, Keluar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </header>
     );
 }

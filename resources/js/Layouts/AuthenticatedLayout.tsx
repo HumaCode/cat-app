@@ -1,5 +1,5 @@
 import { useState, PropsWithChildren, ReactNode } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import ParticleCanvas from '@/Components/ParticleCanvas';
 import Sidebar from './Partials/Sidebar';
 import Topbar from './Partials/Topbar';
@@ -16,6 +16,12 @@ export default function AuthenticatedLayout({
     title,
 }: PropsWithChildren<AuthenticatedProps>) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+    const handleLogoutConfirm = () => {
+        setShowLogoutModal(false);
+        router.post(route('logout'));
+    };
 
     return (
         <div style={{ display: 'flex', width: '100%', minHeight: '100vh', position: 'relative' }}>
@@ -37,6 +43,7 @@ export default function AuthenticatedLayout({
                 <Topbar
                     onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                     title={title}
+                    onTriggerLogout={() => setShowLogoutModal(true)}
                 />
 
                 {/* Main Content Area */}
@@ -47,6 +54,27 @@ export default function AuthenticatedLayout({
                 {/* Reusable Footer */}
                 <Footer />
             </div>
+
+            {/* Custom Interactive Logout Modal (Root Level) */}
+            {showLogoutModal && (
+                <div className="modal-overlay" onClick={() => setShowLogoutModal(false)}>
+                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-icon-wrap">⚠️</div>
+                        <h3 className="modal-title">Konfirmasi Keluar</h3>
+                        <p className="modal-desc">
+                            Apakah Anda yakin ingin keluar dari <strong>CAT System</strong>? Sesi Anda akan berakhir dan Anda perlu login kembali.
+                        </p>
+                        <div className="modal-actions">
+                            <button className="btn-modal cancel" onClick={() => setShowLogoutModal(false)}>
+                                Batal
+                            </button>
+                            <button className="btn-modal confirm" onClick={handleLogoutConfirm}>
+                                Ya, Keluar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
