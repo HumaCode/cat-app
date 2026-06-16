@@ -33,6 +33,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'institution_name' => 'required|string|max:255',
             'username' => 'required|string|lowercase|alpha_dash|max:255|unique:'.User::class,
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -40,8 +41,8 @@ class RegisteredUserController extends Controller
 
         // 1. Buat Institusi gratis (Starter Workspace) secara otomatis
         $institution = \App\Models\Institution::create([
-            'name' => $request->name . ' Workspace',
-            'slug' => \Illuminate\Support\Str::slug($request->name . '-' . \Illuminate\Support\Str::random(4)),
+            'name' => $request->institution_name,
+            'slug' => \Illuminate\Support\Str::slug($request->institution_name . '-' . \Illuminate\Support\Str::random(4)),
             'subscription_plan' => 'starter',
         ]);
 

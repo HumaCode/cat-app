@@ -6,6 +6,7 @@ import '../../../css/login.css';
 export default function Register() {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
+        institution_name: '',
         username: '',
         email: '',
         password: '',
@@ -160,6 +161,34 @@ export default function Register() {
                                             />
                                         </div>
                                         {errors.name && <div className="field-error show">{errors.name}</div>}
+                                    </div>
+
+                                    {/* Institution Name */}
+                                    <div className="field">
+                                        <label className="field-label" htmlFor="institution_name">Nama Instansi / Organisasi</label>
+                                        <div className="field-wrap">
+                                            <div className="field-icon" style={{ color: focusedFields['institution_name'] ? '#10B981' : '' }}>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                                                </svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                id="institution_name"
+                                                name="institution_name"
+                                                className={errors.institution_name ? 'error' : ''}
+                                                placeholder="Nama Lembaga, Instansi, atau Event"
+                                                value={data.institution_name}
+                                                onFocus={() => handleFocus('institution_name')}
+                                                onBlur={() => handleBlur('institution_name')}
+                                                onChange={(e) => {
+                                                    setData('institution_name', e.target.value);
+                                                    if (errors.institution_name) clearErrors('institution_name');
+                                                }}
+                                            />
+                                        </div>
+                                        {errors.institution_name && <div className="field-error show">{errors.institution_name}</div>}
                                     </div>
 
                                     {/* Username */}
