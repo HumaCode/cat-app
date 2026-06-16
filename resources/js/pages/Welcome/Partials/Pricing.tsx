@@ -7,8 +7,8 @@ interface PricingProps {
 }
 
 export default function Pricing({ auth }: PricingProps) {
-    const getCtaLink = () => {
-        return auth.user ? route('dashboard') : route('register');
+    const getCtaLink = (plan: string) => {
+        return auth.user ? route('dashboard') : route('register') + '?plan=' + plan;
     };
 
     return (
@@ -37,7 +37,7 @@ export default function Pricing({ auth }: PricingProps) {
                             <li><span className="cross" style={{ color: 'var(--text-dim)' }}>✗</span> Anti-cheat lanjutan</li>
                             <li><span className="cross" style={{ color: 'var(--text-dim)' }}>✗</span> Proctoring webcam</li>
                         </ul>
-                        <Link href={getCtaLink()} className="btn-ghost" style={{ display: 'block', textAlign: 'center', padding: 12, borderRadius: 10, fontSize: 14 }}>
+                        <Link href={getCtaLink('starter')} className="btn-ghost" style={{ display: 'block', textAlign: 'center', padding: 12, borderRadius: 10, fontSize: 14 }}>
                             {auth.user ? 'Ke Dashboard' : 'Mulai Gratis'}
                         </Link>
                     </div>
@@ -57,7 +57,7 @@ export default function Pricing({ auth }: PricingProps) {
                             <li><span className="check">✓</span> Laporan & ekspor PDF</li>
                             <li><span className="cross" style={{ color: 'var(--text-dim)' }}>✗</span> Proctoring webcam</li>
                         </ul>
-                        <Link href={getCtaLink()} className="btn-primary" style={{ display: 'block', textAlign: 'center', padding: 13, borderRadius: 10, fontSize: 14 }}>
+                        <Link href={getCtaLink('professional')} className="btn-primary" style={{ display: 'block', textAlign: 'center', padding: 13, borderRadius: 10, fontSize: 14 }}>
                             {auth.user ? 'Ke Dashboard' : 'Mulai 14 Hari Gratis'}
                         </Link>
                     </div>

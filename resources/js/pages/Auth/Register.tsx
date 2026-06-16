@@ -4,6 +4,9 @@ import useRegisterEffects from './useRegisterEffects';
 import '../../../css/login.css';
 
 export default function Register() {
+    const queryParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const selectedPlan = queryParams ? (queryParams.get('plan') || 'starter') : 'starter';
+
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
         institution_name: '',
@@ -11,6 +14,7 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        plan: selectedPlan,
     });
 
     const {
@@ -118,6 +122,30 @@ export default function Register() {
                                 Sudah memiliki akun?{' '}
                                 <Link href={route('login')}>Masuk di sini</Link>
                             </p>
+
+                            {data.plan && data.plan !== 'starter' && (
+                                <div className="plan-alert-box" style={{
+                                    margin: '1.25rem 0 0.5rem 0',
+                                    padding: '0.85rem 1rem',
+                                    borderRadius: '12px',
+                                    background: data.plan === 'enterprise' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(139, 92, 246, 0.08)',
+                                    border: data.plan === 'enterprise' ? '1px solid rgba(6, 182, 212, 0.2)' : '1px solid rgba(139, 92, 246, 0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                }}>
+                                    <div style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        backgroundColor: data.plan === 'enterprise' ? '#06B6D4' : '#8B5CF6',
+                                    }}></div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-light)', lineHeight: '1.4' }}>
+                                        Mendaftar untuk paket <strong style={{ color: data.plan === 'enterprise' ? '#06B6D4' : '#8B5CF6', textTransform: 'capitalize' }}>{data.plan}</strong> 
+                                        {data.plan === 'professional' ? ' (14 Hari Trial Gratis)' : ''}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Google Sign In */}
                             <a href="#" className="btn-google" onClick={(e) => e.preventDefault()}>
