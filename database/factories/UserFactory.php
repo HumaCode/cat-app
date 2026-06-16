@@ -26,9 +26,17 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'jenis_kelamin' => fake()->randomElement(['Laki-laki', 'Perempuan']),
+            'alamat' => fake()->address(),
+            'telepon' => fake()->phoneNumber(),
+            'tanggal_lahir' => fake()->date('Y-m-d', '-18 years'),
+            'tempat_lahir' => fake()->city(),
+            'instansi' => fake()->company(),
+            'nip_nik' => fake()->numerify('################'),
             'remember_token' => Str::random(10),
         ];
     }
