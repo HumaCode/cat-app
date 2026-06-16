@@ -544,9 +544,32 @@ canvas { pointer-events: none; }
   background: var(--rose);
   color: #fff;
   box-shadow: 0 4px 12px rgba(225,29,72,0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-modal.confirm:hover {
   background: #be123c;
   box-shadow: 0 6px 16px rgba(225,29,72,0.3);
 }
+.btn-modal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 

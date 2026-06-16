@@ -17,10 +17,16 @@ export default function AuthenticatedLayout({
 }: PropsWithChildren<AuthenticatedProps>) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const handleLogoutConfirm = () => {
-        setShowLogoutModal(false);
-        router.post(route('logout'));
+        setIsLoggingOut(true);
+        router.post(route('logout'), {}, {
+            onFinish: () => {
+                setIsLoggingOut(false);
+                setShowLogoutModal(false);
+            }
+        });
     };
 
     return (
@@ -43,7 +49,10 @@ export default function AuthenticatedLayout({
                 <Topbar
                     onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                     title={title}
-                    onTriggerLogout={() => setShowLogoutModal(true)}
+                    onTriggerLogout={() => {
+                        setIsLoggingOut(false);
+                        setShowLogoutModal(true);
+                    }}
                 />
 
                 {/* Main Content Area */}
@@ -57,7 +66,10 @@ export default function AuthenticatedLayout({
 
             {/* Custom Interactive Logout Modal (Root Level) */}
             {showLogoutModal && (
-                <div className="modal-overlay" onClick={() => setShowLogoutModal(false)}>
+                <div 
+                    className="modal-overlay" 
+                    onClick={() => !isLoggingOut && setShowLogoutModal(false)}
+                >
                     <div className="modal-card" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-icon-wrap">⚠️</div>
                         <h3 className="modal-title">Konfirmasi Keluar</h3>
@@ -65,11 +77,26 @@ export default function AuthenticatedLayout({
                             Apakah Anda yakin ingin keluar dari <strong>CAT System</strong>? Sesi Anda akan berakhir dan Anda perlu login kembali.
                         </p>
                         <div className="modal-actions">
-                            <button className="btn-modal cancel" onClick={() => setShowLogoutModal(false)}>
+                            <button 
+                                className="btn-modal cancel" 
+                                onClick={() => setShowLogoutModal(false)}
+                                disabled={isLoggingOut}
+                            >
                                 Batal
                             </button>
-                            <button className="btn-modal confirm" onClick={handleLogoutConfirm}>
-                                Ya, Keluar
+                            <button 
+                                className="btn-modal confirm" 
+                                onClick={handleLogoutConfirm}
+                                disabled={isLoggingOut}
+                            >
+                                {isLoggingOut ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Sedang proses...
+                                    </>
+                                ) : (
+                                    'Ya, Keluar'
+                                )}
                             </button>
                         </div>
                     </div>
