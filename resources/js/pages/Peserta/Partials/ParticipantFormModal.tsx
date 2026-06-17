@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { ParticipantItem } from './DetailDrawer';
 
@@ -62,7 +62,7 @@ export default function ParticipantFormModal({
         }
     }, [isOpen, editParticipant]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (isEdit) {

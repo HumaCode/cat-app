@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState, ChangeEvent, FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 
 interface ImportModalProps {
@@ -17,7 +17,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
         ujian: '',
     });
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         setData('file', file);
         setFileName(file ? file.name : null);
@@ -27,7 +27,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
         fileInputRef.current?.click();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (!data.file) {

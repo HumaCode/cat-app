@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { ParticipantItem } from './DetailDrawer';
 
@@ -48,7 +48,7 @@ export default function RegisterExamModal({
         }
     }, [isOpen, selectedIds, participants]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (!data.ujian) {

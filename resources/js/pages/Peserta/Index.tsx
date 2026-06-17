@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import '../../../css/bank-soal.css'; // Shared CSS
@@ -46,15 +46,21 @@ interface IndexProps {
         search?: string;
         per_page?: string;
     };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }
 
 export default function PesertaIndex() {
-    const props = (usePage<any>().props || {}) as unknown as IndexProps;
-    const participants = props.participants || { data: [], current_page: 1, last_page: 1, total: 0, from: 0, to: 0, links: [] };
-    const stats = props.stats || { total: 0, aktif: 0, nonaktif: 0, pending: 0, perlu_validasi: 0 };
-    const exams = props.exams || [];
-    const departments = props.departments || [];
-    const filters = props.filters || {};
+    const {
+        participants = { data: [], current_page: 1, last_page: 1, total: 0, from: 0, to: 0, links: [] },
+        stats = { total: 0, aktif: 0, nonaktif: 0, pending: 0, perlu_validasi: 0 },
+        exams = [],
+        departments = [],
+        filters = {},
+        flash = {}
+    } = (usePage<any>().props || {}) as unknown as IndexProps;
 
     // Toast State
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
@@ -93,7 +99,6 @@ export default function PesertaIndex() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     // Handle session flashes
-    const { flash } = usePage<any>().props;
     useEffect(() => {
         if (flash?.success) showToast(flash.success, 'success');
         if (flash?.error) showToast(flash.error, 'error');
@@ -128,7 +133,7 @@ export default function PesertaIndex() {
         });
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
+    const handleSearchSubmit = (e: FormEvent) => {
         e.preventDefault();
         applyFilters({ search: searchVal });
     };
