@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'jenis_kelamin', 'alamat', 'telepon', 'tanggal_lahir', 'tempat_lahir', 'instansi', 'nip_nik', 'institution_id', 'role'])]
+#[Fillable(['name', 'username', 'email', 'password', 'jenis_kelamin', 'alamat', 'telepon', 'tanggal_lahir', 'tempat_lahir', 'instansi', 'jabatan', 'nip_nik', 'institution_id', 'role', 'status', 'exam_data'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -40,6 +40,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'exam_data' => 'array',
         ];
     }
 

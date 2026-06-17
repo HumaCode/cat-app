@@ -23,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Interfaces\QuestionRepositoryInterface::class,
             \App\Repositories\QuestionRepository::class
         );
+        $this->app->bind(
+            \App\Repositories\Interfaces\UserRepositoryInterface::class,
+            \App\Repositories\UserRepository::class
+        );
     }
 
     /**

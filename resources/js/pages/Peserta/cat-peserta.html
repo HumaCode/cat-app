@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peserta — CAT System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#18181F;--ink-2:#3D3D55;--ink-3:#7878A0;--ink-4:#B0B0CC;--ink-5:#E0E0EE;
+  --bg:#F7F6F2;--bg-2:#EFEEEA;
+  --surface:#FFFFFF;--surface-2:#FAFAF8;
+  --border:rgba(24,24,31,.08);--border-2:rgba(24,24,31,.05);
+  --indigo:#4F46E5;--indigo-h:#3730A3;--indigo-s:rgba(79,70,229,.1);
+  --teal:#0D9488;--teal-s:rgba(13,148,136,.1);
+  --amber:#D97706;--amber-s:rgba(217,119,6,.1);
+  --rose:#E11D48;--rose-s:rgba(225,29,72,.1);
+  --emerald:#059669;--emerald-s:rgba(5,150,105,.1);
+  --violet:#7C3AED;--violet-s:rgba(124,58,237,.1);
+  --sky:#0284C7;--sky-s:rgba(2,132,199,.1);
+  --shadow-xs:0 1px 3px rgba(24,24,31,.06);
+  --shadow-sm:0 2px 8px rgba(24,24,31,.07);
+  --shadow-md:0 8px 24px rgba(24,24,31,.09);
+  --shadow-lg:0 20px 60px rgba(24,24,31,.10);
+  --r:14px;--r-sm:10px;--r-xs:7px;
+  --font:'Bricolage Grotesque',system-ui,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --mono:'DM Mono',monospace;
+  --sidebar-w:260px;--topbar-h:68px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+#particle-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transition:transform .3s cubic-bezier(.22,1,.36,1);box-shadow:var(--shadow-sm)}
+.sidebar-head{height:var(--topbar-h);display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border-2);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--indigo),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.35);flex-shrink:0}
+.brand-name{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.brand-name span{font-weight:400;color:var(--ink-3)}
+.sidebar-body{flex:1;overflow-y:auto;padding:16px 12px;scrollbar-width:none}
+.sidebar-body::-webkit-scrollbar{display:none}
+.nav-section{margin-bottom:24px}
+.nav-section-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);padding:0 10px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);font-size:13.5px;font-weight:500;color:var(--ink-3);transition:all .18s;position:relative;border:none;background:transparent;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg-2);color:var(--ink)}
+.nav-item.active{background:var(--indigo-s);color:var(--indigo)}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--indigo)}
+.nav-icon{width:32px;height:32px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;background:transparent;transition:background .18s}
+.nav-item.active .nav-icon{background:rgba(79,70,229,.12)}
+.nav-badge{margin-left:auto;background:var(--indigo);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;min-width:20px;text-align:center}
+.nav-badge.amber{background:var(--amber)}.nav-badge.teal{background:var(--teal)}
+.sidebar-foot{padding:16px 12px;border-top:1px solid var(--border-2);flex-shrink:0}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r-sm);cursor:pointer;transition:background .18s}
+.user-card:hover{background:var(--bg-2)}
+.user-ava{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--violet));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:var(--ink-4)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:rgba(247,246,242,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:40}
+.topbar-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:var(--ink);flex:1}
+.topbar-title span{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--ink-3)}
+.hamburger{display:none;background:none;border:none;width:36px;height:36px;border-radius:var(--r-xs);align-items:center;justify-content:center;font-size:18px;color:var(--ink-2)}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 14px;height:38px;transition:all .2s}
+.topbar-search:focus-within{border-color:rgba(79,70,229,.3);box-shadow:0 0 0 3px rgba(79,70,229,.07)}
+.topbar-search input{border:none;outline:none;background:transparent;font-size:13px;color:var(--ink);width:200px}
+.topbar-search input::placeholder{color:var(--ink-4)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink-3);transition:all .18s;position:relative}
+.icon-btn:hover{background:var(--bg-2);color:var(--ink)}
+.notif-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--rose);border:1.5px solid var(--surface)}
+.topbar-date{font-size:12px;color:var(--ink-4);white-space:nowrap}
+
+/* ── LAYOUT ── */
+.main-wrap{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);flex:1;position:relative;z-index:1;min-width:0}
+.main-inner{padding:28px 28px 40px;display:flex;flex-direction:column;gap:24px}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.page-header-text h1{font-family:var(--serif);font-size:clamp(22px,2.8vw,32px);font-weight:400;line-height:1.2}
+.page-header-text h1 em{font-style:italic;color:var(--indigo)}
+.page-header-text p{font-size:13.5px;color:var(--ink-3);margin-top:6px;font-weight:300}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border:none;border-radius:var(--r-sm);padding:11px 20px;font-size:13.5px;font-weight:600;box-shadow:0 4px 16px rgba(24,24,31,.2);transition:all .2s;white-space:nowrap}
+.btn-primary:hover{background:var(--indigo);box-shadow:0 6px 20px rgba(79,70,229,.35);transform:translateY(-1px)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 18px;font-size:13.5px;font-weight:500;transition:all .2s;white-space:nowrap}
+.btn-secondary:hover{background:var(--bg-2);border-color:var(--ink-5)}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.kpi-mini{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-xs);transition:all .22s;position:relative;overflow:hidden}
+.kpi-mini::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--clr);transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.kpi-mini:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.kpi-mini:hover::before{transform:scaleX(1)}
+.kpi-mini-icon{width:40px;height:40px;border-radius:var(--r-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--clr-s)}
+.kpi-mini-body{flex:1;min-width:0}
+.kpi-mini-label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px}
+.kpi-mini-num{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.6px;line-height:1.15;margin-top:1px}
+.kpi-mini-sub{font-size:11px;color:var(--ink-4);margin-top:2px}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-xs)}
+.tab-pills{display:flex;gap:4px;flex-wrap:wrap}
+.tab-pill{padding:5px 13px;border-radius:100px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--ink-3);cursor:pointer;transition:all .18s;white-space:nowrap}
+.tab-pill:hover{background:var(--bg-2);color:var(--ink)}
+.tab-pill.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.pill-count{display:inline-block;background:rgba(255,255,255,.25);color:inherit;font-size:10px;padding:0 5px;border-radius:100px;margin-left:3px}
+.tab-pill:not(.active) .pill-count{background:var(--bg-2);color:var(--ink-4)}
+.fdiv{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.fsel{height:32px;padding:0 28px 0 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237878A0' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 9px center;font-size:12.5px;color:var(--ink-2);outline:none;cursor:pointer;appearance:none;transition:border-color .18s}
+.fsel:focus{border-color:rgba(79,70,229,.4)}
+.fspacer{flex:1}
+.fsearch{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:var(--r-xs);padding:0 11px;height:32px;background:var(--surface);transition:all .2s}
+.fsearch:focus-within{border-color:rgba(79,70,229,.4);box-shadow:0 0 0 3px rgba(79,70,229,.07)}
+.fsearch input{border:none;outline:none;background:transparent;font-size:12.5px;color:var(--ink);width:160px}
+.fsearch input::placeholder{color:var(--ink-4)}
+
+/* ── BULK BAR ── */
+.bulk-bar{background:var(--indigo);border-radius:var(--r-sm);padding:10px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 24px rgba(79,70,229,.35)}
+.bulk-bar.hidden{display:none}
+.bulk-count{font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.bulk-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.bulk-btn{padding:6px 13px;border-radius:var(--r-xs);border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.bulk-btn.light{background:rgba(255,255,255,.18);color:#fff}.bulk-btn.light:hover{background:rgba(255,255,255,.3)}
+.bulk-btn.danger{background:rgba(225,29,72,.22);color:#fff}.bulk-btn.danger:hover{background:rgba(225,29,72,.4)}
+.bulk-btn.white{background:#fff;color:var(--indigo)}.bulk-btn.white:hover{background:var(--bg-2)}
+
+/* ── TABLE CARD ── */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-xs);overflow:hidden}
+.table-card-head{padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border-2)}
+.tc-title{font-size:14px;font-weight:700;color:var(--ink)}
+.tc-sub{font-size:11.5px;color:var(--ink-4);margin-top:2px}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10.5px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.5px;padding:11px 16px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface-2)}
+th.c,td.c{text-align:center}
+td{padding:0 16px;height:56px;font-size:13px;color:var(--ink-2);border-bottom:1px solid var(--border-2);white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.cb-col{width:40px}
+.cb{width:15px;height:15px;border-radius:4px;accent-color:var(--indigo);cursor:pointer}
+
+/* Participant avatar */
+.p-ava{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;background:var(--g)}
+.p-info{display:flex;flex-direction:column;gap:2px}
+.p-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.p-email{font-size:11.5px;color:var(--ink-4)}
+.p-cell{display:flex;align-items:center;gap:9px}
+
+/* Status badges */
+.sbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.s-aktif   {background:var(--teal-s);color:var(--teal)}
+.s-nonaktif{background:var(--rose-s);color:var(--rose)}
+.s-pending {background:var(--amber-s);color:var(--amber)}
+.s-aktif::before{animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Score pill */
+.score-pill{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--r-xs)}
+.sc-hi{background:var(--emerald-s);color:var(--emerald)}
+.sc-md{background:var(--amber-s);color:var(--amber)}
+.sc-lo{background:var(--rose-s);color:var(--rose)}
+.sc-none{background:var(--bg-2);color:var(--ink-4)}
+
+/* Attempt bar */
+.attempt-bar{display:flex;align-items:center;gap:6px}
+.attempt-dots{display:flex;gap:3px}
+.attempt-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s}
+.attempt-dot.used{background:var(--indigo)}
+.attempt-dot.pass{background:var(--emerald)}
+.attempt-dot.fail{background:var(--rose)}
+
+/* Row actions */
+.row-acts{display:flex;gap:3px;opacity:0;transition:opacity .15s}
+tr:hover .row-acts{opacity:1}
+.row-btn{width:27px;height:27px;border-radius:var(--r-xs);border:none;background:transparent;color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s}
+.row-btn:hover{background:var(--bg-2);color:var(--ink)}
+.row-btn.d:hover{background:var(--rose-s);color:var(--rose)}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border-2)}
+.pg-info{font-size:12px;color:var(--ink-4)}
+.pg-info strong{color:var(--ink-2)}
+.pg-controls{display:flex;gap:3px}
+.pg-btn{width:30px;height:30px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:12.5px;transition:all .15s;font-family:var(--mono);font-weight:600}
+.pg-btn:hover{background:var(--bg-2);color:var(--ink)}
+.pg-btn.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.pg-btn:disabled{opacity:.35;pointer-events:none}
+.pg-btn.wide{width:auto;padding:0 10px}
+
+/* ── DETAIL DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;z-index:90;background:rgba(24,24,31,.45);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:100vw;background:var(--surface);box-shadow:var(--shadow-lg);z-index:91;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.drawer-overlay.open .drawer{transform:none}
+.drawer-head{padding:20px 24px 16px;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.drawer-close{width:30px;height:30px;border-radius:var(--r-xs);border:none;background:var(--bg-2);color:var(--ink-3);font-size:15px;display:flex;align-items:center;justify-content:center;margin-left:auto;transition:all .18s}
+.drawer-close:hover{background:var(--bg);color:var(--ink)}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 24px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.drawer-body::-webkit-scrollbar{width:4px}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* Detail profile card */
+.d-profile{display:flex;align-items:center;gap:14px;padding:16px;background:var(--bg);border-radius:var(--r-sm);margin-bottom:20px}
+.d-ava{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;background:var(--g)}
+.d-info-name{font-size:16px;font-weight:700;color:var(--ink)}
+.d-info-email{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.d-info-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.d-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--surface);border:1px solid var(--border);color:var(--ink-3)}
+
+/* Detail sections */
+.d-section{margin-bottom:20px}
+.d-section-title{font-size:11px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.d-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2)}
+.d-row:last-child{border-bottom:none}
+.d-row-label{font-size:12.5px;color:var(--ink-3)}
+.d-row-val{font-size:13px;font-weight:600;color:var(--ink)}
+
+/* Ujian history in drawer */
+.history-item{background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s}
+.history-item:hover{background:var(--bg-2)}
+.history-item:last-child{margin-bottom:0}
+.hi-icon{width:34px;height:34px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hi-body{flex:1;min-width:0}
+.hi-title{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hi-meta{font-size:11px;color:var(--ink-4);margin-top:2px}
+.hi-score{text-align:right;flex-shrink:0}
+.hi-score-num{font-family:var(--mono);font-size:15px;font-weight:800}
+.hi-score-lbl{font-size:10px;color:var(--ink-4);margin-top:1px}
+
+/* Progress mini chart */
+.mini-chart{display:flex;align-items:flex-end;gap:3px;height:36px}
+.mini-bar{flex:1;border-radius:3px 3px 0 0;min-width:6px;background:var(--indigo);opacity:.15;transition:all .3s}
+.mini-bar.hi{opacity:.9}
+.mini-bar.md{opacity:.55}
+.mini-bar.lo{opacity:.3}
+
+/* ── MODAL TAMBAH PESERTA ── */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(24,24,31,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--r);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(24px) scale(.98);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.modal-overlay.open .modal{transform:none}
+.modal-head{padding:20px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-size:16px;font-weight:700;color:var(--ink)}
+.modal-sub{font-size:12px;color:var(--ink-4);margin-top:2px}
+.modal-close{width:30px;height:30px;border-radius:var(--r-xs);border:none;background:var(--bg-2);color:var(--ink-3);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.modal-close:hover{background:var(--bg);color:var(--ink)}
+.modal-body{padding:22px 26px}
+.modal-foot{padding:14px 26px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;background:var(--surface-2)}
+
+/* Form */
+.form-grid{display:grid;gap:15px}
+.fg-2{grid-template-columns:1fr 1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.req{color:var(--rose);margin-left:2px}
+.form-input{height:40px;padding:0 13px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);font-size:13px;color:var(--ink);outline:none;transition:all .18s;width:100%}
+.form-input:focus{border-color:rgba(79,70,229,.5);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.form-select{height:40px;padding:0 32px 0 13px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237878A0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;font-size:13px;color:var(--ink);outline:none;cursor:pointer;appearance:none;width:100%;transition:all .18s}
+.form-select:focus{border-color:rgba(79,70,229,.5);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.form-hint{font-size:11px;color:var(--ink-4)}
+.form-section{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;padding-bottom:8px;border-bottom:1px solid var(--border-2)}
+.form-textarea{resize:vertical;padding:10px 13px;min-height:72px;line-height:1.55}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-2)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info-label{font-size:13px;font-weight:500;color:var(--ink-2)}
+.toggle-info-sub{font-size:11.5px;color:var(--ink-4);margin-top:1px}
+.toggle{position:relative;width:38px;height:21px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;border-radius:100px;background:var(--ink-5);cursor:pointer;transition:all .2s}
+.toggle-slider::before{content:'';position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;top:3px;left:3px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.toggle input:checked+.toggle-slider{background:var(--indigo)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(17px)}
+
+/* Upload zone */
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--r-sm);padding:22px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:var(--indigo);background:var(--indigo-s)}
+.upload-icon{font-size:26px;opacity:.45}
+.upload-label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.upload-sub{font-size:11.5px;color:var(--ink-4)}
+
+/* Access token display */
+.token-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.token-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--indigo);letter-spacing:2px;flex:1}
+.token-copy{padding:6px 13px;border-radius:var(--r-xs);border:1px solid var(--indigo);background:var(--indigo-s);color:var(--indigo);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.token-copy:hover{background:var(--indigo);color:#fff}
+
+/* Sidebar overlay */
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:49;background:rgba(24,24,31,.45);backdrop-filter:blur(2px)}
+
+/* Anim */
+.anim-in{animation:animIn .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes animIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.10s}.d3{animation-delay:.15s}
+.d4{animation-delay:.20s}.d5{animation-delay:.25s}.d6{animation-delay:.30s}
+
+/* Responsive */
+@media(max-width:1300px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}.main-wrap{margin-left:0}.topbar{left:0}.hamburger{display:flex}.topbar-date{display:none}}
+@media(max-width:768px){.main-inner{padding:20px 16px 32px}.fg-2{grid-template-columns:1fr}.drawer{width:100vw}}
+@media(max-width:640px){.kpi-strip{grid-template-columns:1fr 1fr}.topbar-search{display:none}}
+@media(max-width:400px){.kpi-strip{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════
+     DRAWER: DETAIL PESERTA
+══════════════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()">
+  <div class="drawer" onclick="event.stopPropagation()" id="drawerEl">
+    <div class="drawer-head">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink)" id="drawerTitle">Detail Peserta</div>
+        <div style="font-size:12px;color:var(--ink-4);margin-top:2px" id="drawerSub">Riwayat & statistik ujian</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL: TAMBAH PESERTA
+══════════════════════════ -->
+<div class="modal-overlay" id="modalTambah">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">👤 Tambah Peserta</div>
+        <div class="modal-sub">Daftarkan peserta baru — kode akses akan dibuat otomatis</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalTambah')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section">Data Diri</div>
+        <div class="form-grid fg-2">
+          <div class="form-field">
+            <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+            <input class="form-input" type="text" placeholder="contoh: Rina Wijayanti, S.Pd">
+          </div>
+          <div class="form-field">
+            <label class="form-label">NIP / NIK</label>
+            <input class="form-input" type="text" placeholder="18 digit NIP atau NIK">
+          </div>
+        </div>
+        <div class="form-grid fg-2">
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" placeholder="contoh: rina@gmail.com">
+            <span class="form-hint">Untuk terima notifikasi & hasil ujian</span>
+          </div>
+          <div class="form-field">
+            <label class="form-label">No. HP / WhatsApp</label>
+            <input class="form-input" type="tel" placeholder="08xx-xxxx-xxxx">
+          </div>
+        </div>
+        <div class="form-grid fg-2">
+          <div class="form-field">
+            <label class="form-label">Instansi / OPD</label>
+            <input class="form-input" type="text" placeholder="contoh: Dinas Pendidikan">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Golongan / Jabatan</label>
+            <input class="form-input" type="text" placeholder="contoh: III/a — Analis Kebijakan">
+          </div>
+        </div>
+
+        <div class="form-section" style="margin-top:4px">Daftarkan ke Ujian</div>
+        <div class="form-field">
+          <label class="form-label">Pilih Ujian (boleh lebih dari satu)</label>
+          <select class="form-select">
+            <option value="">Pilih ujian…</option>
+            <option>SKD CPNS 2025 — Paket A</option>
+            <option>SKD CPNS 2025 — Paket B</option>
+            <option>TKD PPPK Guru Batch 2</option>
+            <option>Ujian Kompetensi Teknis IT</option>
+            <option>Diklat Kepemimpinan IV</option>
+          </select>
+          <span class="form-hint">Peserta akan langsung terdaftar dan mendapat kode akses</span>
+        </div>
+
+        <div class="form-section" style="margin-top:4px">Kode Akses</div>
+        <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">🔑</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:3px">Kode akses dibuat otomatis</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.6">Sistem akan generate token unik 8 karakter per peserta per ujian. Kode dikirim via email dan SMS jika diaktifkan.</div>
+          </div>
+        </div>
+
+        <div class="form-section" style="margin-top:4px">Notifikasi</div>
+        <div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-info-label">Kirim email undangan ujian</div>
+              <div class="toggle-info-sub">Berisi link ujian dan kode akses</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-info-label">Kirim reminder H-1 sebelum ujian</div>
+              <div class="toggle-info-sub">Email dan/atau WhatsApp</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-info-label">Kirim hasil ujian setelah selesai</div>
+              <div class="toggle-info-sub">Hanya jika ujian mengizinkan tampilkan hasil</div>
+            </div>
+            <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
+      <button class="btn-primary" onclick="closeModal('modalTambah');showTokenModal()">✓ Simpan & Buat Kode Akses</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL: TOKEN AKSES
+══════════════════════════ -->
+<div class="modal-overlay" id="modalToken">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🔑 Kode Akses Dibuat</div>
+        <div class="modal-sub">Peserta berhasil ditambahkan</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalToken')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:8px 0 20px">
+        <div style="font-size:40px;margin-bottom:10px">✅</div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink)">Peserta berhasil ditambahkan!</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-top:4px">Kode akses untuk ujian <strong>SKD CPNS 2025 — Paket A</strong></div>
+      </div>
+      <div class="token-box">
+        <div class="token-val" id="tokenDisplay">A8F3-K29X</div>
+        <button class="token-copy" onclick="copyToken()">📋 Salin</button>
+      </div>
+      <div style="margin-top:14px;background:var(--bg);border-radius:var(--r-sm);padding:12px 14px">
+        <div style="font-size:12px;color:var(--ink-3);line-height:1.7">
+          📧 Email undangan telah dikirim ke <strong>rina@gmail.com</strong><br>
+          📱 SMS reminder akan dikirim H-1 sebelum ujian dimulai
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalToken');openModal('modalTambah')">＋ Tambah Peserta Lagi</button>
+      <button class="btn-primary" onclick="closeModal('modalToken')">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL: IMPORT PESERTA
+══════════════════════════ -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📥 Import Peserta dari Excel</div>
+        <div class="modal-sub">Tambah banyak peserta sekaligus via file .xlsx</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalImport')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Daftarkan ke Ujian <span class="req">*</span></label>
+          <select class="form-select">
+            <option>Pilih ujian…</option>
+            <option>SKD CPNS 2025 — Paket A</option>
+            <option>SKD CPNS 2025 — Paket B</option>
+            <option>TKD PPPK Guru Batch 2</option>
+          </select>
+        </div>
+        <div class="upload-zone" onclick="alert('Pilih file Excel')" style="padding:34px 24px">
+          <div class="upload-icon">📊</div>
+          <div class="upload-label">Drag & drop atau klik untuk pilih file</div>
+          <div class="upload-sub">Format .xlsx — maks. 5.000 peserta per file</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">💡</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:3px">Kolom yang diperlukan</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.65">Nama · NIP/NIK · Email · No_HP · Instansi<br>Kolom opsional: Golongan · Jabatan · Catatan</div>
+            <button onclick="alert('Download template')" style="margin-top:9px;font-size:12px;font-weight:600;color:var(--indigo);background:none;border:none;cursor:pointer;padding:0">📎 Download Template Excel →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalImport')">Batal</button>
+      <button class="btn-primary">📥 Import & Buat Kode Akses</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL: DAFTARKAN KE UJIAN
+══════════════════════════ -->
+<div class="modal-overlay" id="modalDaftar">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📋 Daftarkan ke Ujian</div>
+        <div class="modal-sub" id="daftarSub">3 peserta terpilih</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalDaftar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Pilih Ujian <span class="req">*</span></label>
+          <select class="form-select">
+            <option>Pilih ujian…</option>
+            <option>SKD CPNS 2025 — Paket A</option>
+            <option>SKD CPNS 2025 — Paket B</option>
+            <option>TKD PPPK Guru Batch 2</option>
+            <option>Ujian Kompetensi Teknis IT</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Batas Percobaan</label>
+          <select class="form-select">
+            <option>Ikuti pengaturan ujian (default)</option>
+            <option>1 kali</option><option>2 kali</option><option>3 kali</option>
+            <option>Unlimited</option>
+          </select>
+        </div>
+        <div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-info-label">Kirim notifikasi ke peserta</div>
+              <div class="toggle-info-sub">Email & SMS berisi kode akses dan jadwal ujian</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalDaftar')">Batal</button>
+      <button class="btn-primary">✓ Daftarkan & Kirim Notifikasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SIDEBAR
+══════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">
+      <div class="brand-icon">C</div>
+      <div class="brand-name">CAT<span>System</span></div>
+    </div>
+  </div>
+  <div class="sidebar-body">
+    <div class="nav-section">
+      <div class="nav-section-title">Utama</div>
+      <button class="nav-item"><div class="nav-icon">🏠</div>Dashboard</button>
+      <button class="nav-item"><div class="nav-icon">📋</div>Manajemen Ujian<span class="nav-badge teal">3</span></button>
+      <button class="nav-item"><div class="nav-icon">🏦</div>Bank Soal</button>
+      <button class="nav-item active"><div class="nav-icon">👥</div>Peserta<span class="nav-badge amber">12</span></button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Analitik</div>
+      <button class="nav-item"><div class="nav-icon">📊</div>Laporan & Hasil</button>
+      <button class="nav-item"><div class="nav-icon">🏆</div>Ranking & Nilai</button>
+      <button class="nav-item"><div class="nav-icon">🎯</div>Analitik Soal</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Sistem</div>
+      <button class="nav-item"><div class="nav-icon">🏢</div>Institusi</button>
+      <button class="nav-item"><div class="nav-icon">🛡️</div>Akses & Role</button>
+      <button class="nav-item"><div class="nav-icon">⚙️</div>Pengaturan</button>
+    </div>
+  </div>
+  <div class="sidebar-foot">
+    <div class="user-card">
+      <div class="user-ava">SA</div>
+      <div class="user-info">
+        <div class="user-name">Budi Kurniawan</div>
+        <div class="user-role">BKPSDM Kota Pekalongan</div>
+      </div>
+      <div style="color:var(--ink-4);font-size:14px">⋯</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════
+     TOPBAR
+══════════════════════════ -->
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="topbar-title">Peserta <span>— kelola akun & pendaftaran ujian</span></div>
+  <div class="topbar-search">
+    <span style="color:var(--ink-4);font-size:14px">🔍</span>
+    <input type="text" placeholder="Cari nama, NIP, email...">
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+    <button class="icon-btn">❓</button>
+  </div>
+  <span class="topbar-date" id="topbarDate"></span>
+</header>
+
+<!-- ══════════════════════════
+     MAIN
+══════════════════════════ -->
+<div class="main-wrap">
+  <div class="main-inner">
+
+    <!-- Page Header -->
+    <div class="page-header anim-in d1">
+      <div class="page-header-text">
+        <h1>Manajemen <em>Peserta</em> 👥</h1>
+        <p>Kelola data peserta, kode akses, dan pendaftaran ujian secara terpusat.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" onclick="openModal('modalImport')">📥 Import Excel</button>
+        <button class="btn-secondary" onclick="alert('Export daftar peserta')">📤 Export</button>
+        <button class="btn-primary" onclick="openModal('modalTambah')"><span>＋</span> Tambah Peserta</button>
+      </div>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="kpi-strip anim-in d2">
+      <div class="kpi-mini" style="--clr:var(--indigo);--clr-s:var(--indigo-s)">
+        <div class="kpi-mini-icon">👥</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Total Peserta</div>
+          <div class="kpi-mini-num">4.821</div>
+          <div class="kpi-mini-sub">Terdaftar di sistem</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--teal);--clr-s:var(--teal-s)">
+        <div class="kpi-mini-icon">🟢</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Sedang Ujian</div>
+          <div class="kpi-mini-num">346</div>
+          <div class="kpi-mini-sub">3 sesi aktif sekarang</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--emerald);--clr-s:var(--emerald-s)">
+        <div class="kpi-mini-icon">✅</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Sudah Ujian</div>
+          <div class="kpi-mini-num">3.290</div>
+          <div class="kpi-mini-sub">Bulan ini</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--amber);--clr-s:var(--amber-s)">
+        <div class="kpi-mini-icon">⏳</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Belum Ujian</div>
+          <div class="kpi-mini-num">1.185</div>
+          <div class="kpi-mini-sub">Terdaftar, belum hadir</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--rose);--clr-s:var(--rose-s)">
+        <div class="kpi-mini-icon">⚠️</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Perlu Validasi</div>
+          <div class="kpi-mini-num">12</div>
+          <div class="kpi-mini-sub">Data belum lengkap</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar anim-in d3">
+      <div class="tab-pills" id="statusTabs">
+        <button class="tab-pill active" onclick="setTab(this,'statusTabs')">Semua<span class="pill-count">4.821</span></button>
+        <button class="tab-pill" onclick="setTab(this,'statusTabs')">Aktif<span class="pill-count">4.609</span></button>
+        <button class="tab-pill" onclick="setTab(this,'statusTabs')">Nonaktif<span class="pill-count">200</span></button>
+        <button class="tab-pill" onclick="setTab(this,'statusTabs')">Pending<span class="pill-count">12</span></button>
+      </div>
+      <div class="fdiv"></div>
+      <select class="fsel" style="min-width:130px">
+        <option>Semua ujian</option>
+        <option>SKD CPNS 2025 — Paket A</option>
+        <option>TKD PPPK Guru Batch 2</option>
+        <option>Diklat IT</option>
+      </select>
+      <select class="fsel" style="min-width:120px">
+        <option>Semua instansi</option>
+        <option>Dinas Pendidikan</option>
+        <option>Diskominfo</option>
+        <option>BKPSDM</option>
+        <option>Dinkes</option>
+      </select>
+      <select class="fsel">
+        <option>Urutkan: Terbaru</option>
+        <option>Nama A–Z</option>
+        <option>Nilai tertinggi</option>
+        <option>Ujian terbanyak</option>
+      </select>
+      <div class="fspacer"></div>
+      <div class="fsearch">
+        <span style="color:var(--ink-4);font-size:12px">🔍</span>
+        <input type="text" placeholder="Cari nama, NIP, email...">
+      </div>
+    </div>
+
+    <!-- Bulk Bar + Table -->
+    <div class="anim-in d4">
+      <div class="bulk-bar hidden" id="bulkBar">
+        <span class="bulk-count" id="bulkCount">0 peserta dipilih</span>
+        <div class="bulk-actions">
+          <button class="bulk-btn light" onclick="openModal('modalDaftar')">📋 Daftarkan ke Ujian</button>
+          <button class="bulk-btn light" onclick="alert('Kirim notifikasi')">📨 Kirim Notif</button>
+          <button class="bulk-btn light" onclick="alert('Reset kode akses')">🔑 Reset Token</button>
+          <button class="bulk-btn light" onclick="alert('Export pilihan')">📤 Export</button>
+          <button class="bulk-btn danger" onclick="alert('Nonaktifkan')">⛔ Nonaktifkan</button>
+          <button class="bulk-btn white" onclick="clearSel()">✕ Batal</button>
+        </div>
+      </div>
+
+      <div class="table-card" style="margin-top:0" id="pesertaTable">
+        <div class="table-card-head">
+          <div>
+            <div class="tc-title" id="tableTitle">Semua Peserta</div>
+            <div class="tc-sub" id="tableSub">Menampilkan 1–20 dari 4.821 peserta</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-secondary" style="padding:7px 14px;font-size:12.5px" onclick="alert('Generate semua token ulang')">🔑 Generate Token</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="cb-col"><input type="checkbox" class="cb" id="checkAll" onchange="toggleAll(this)"></th>
+                <th>Peserta</th>
+                <th>NIP / NIK</th>
+                <th>Instansi</th>
+                <th>Ujian Terdaftar</th>
+                <th class="c">Nilai Terakhir</th>
+                <th class="c">Percobaan</th>
+                <th>Status</th>
+                <th>Bergabung</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pesertaBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pg-info">Menampilkan <strong>1–20</strong> dari <strong>4.821</strong> peserta</div>
+          <div class="pg-controls">
+            <button class="pg-btn" disabled>‹</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">3</button>
+            <button class="pg-btn wide">…</button>
+            <button class="pg-btn">242</button>
+            <button class="pg-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════ DATA ══════════ */
+const gradients = [
+  'linear-gradient(135deg,#4F46E5,#7C3AED)',
+  'linear-gradient(135deg,#0D9488,#059669)',
+  'linear-gradient(135deg,#D97706,#EA580C)',
+  'linear-gradient(135deg,#E11D48,#BE123C)',
+  'linear-gradient(135deg,#0284C7,#0369A1)',
+  'linear-gradient(135deg,#7C3AED,#A21CAF)',
+  'linear-gradient(135deg,#059669,#0D9488)',
+  'linear-gradient(135deg,#DC2626,#D97706)',
+  'linear-gradient(135deg,#1D4ED8,#4F46E5)',
+  'linear-gradient(135deg,#B45309,#D97706)',
+];
+
+const pesertaData = [
+  {id:1, name:'Rina Wijayanti, S.Pd', nip:'198702142010012014', email:'rina.wijayanti@gmail.com', hp:'081234567890', instansi:'Dinas Pendidikan', jabatan:'Guru Ahli Muda', ujian:'SKD CPNS 2025 — Paket A', ujian_count:3, nilai:84.5, attempts:[true,false,false], status:'aktif', bergabung:'3 Jan 2025',
+    riwayat:[{nama:'SKD CPNS 2025 — Paket A',tgl:'10 Jun 2025',nilai:84.5,lulus:true},{nama:'Simulasi TIU Sesi 2',tgl:'28 Mei 2025',nilai:78.0,lulus:true},{nama:'Latihan TWK',tgl:'15 Mei 2025',nilai:91.3,lulus:true}]},
+  {id:2, name:'Dimas Prasetyo, S.Kom', nip:'199005202018031002', email:'dimas.pras@yahoo.com', hp:'082198765432', instansi:'Diskominfo', jabatan:'Pranata Komputer', ujian:'Ujian Kompetensi Teknis IT', ujian_count:2, nilai:91.2, attempts:[true,true,false], status:'aktif', bergabung:'12 Jan 2025',
+    riwayat:[{nama:'Ujian Kompetensi Teknis IT',tgl:'9 Jun 2025',nilai:91.2,lulus:true},{nama:'SKD CPNS 2024',tgl:'20 Nov 2024',nilai:76.4,lulus:true}]},
+  {id:3, name:'Siti Rahayu', nip:'199312082020122001', email:'siti.rahayu@pekalongan.go.id', hp:'085611223344', instansi:'BKPSDM', jabatan:'Pengelola Kepegawaian', ujian:'TKD PPPK Guru Batch 2', ujian_count:1, nilai:62.0, attempts:[true,false,false], status:'aktif', bergabung:'20 Jan 2025',
+    riwayat:[{nama:'TKD PPPK Guru Batch 2',tgl:'8 Jun 2025',nilai:62.0,lulus:false}]},
+  {id:4, name:'Ahmad Fauzi, S.AP', nip:'198808152014031007', email:'a.fauzi@dinkes.id', hp:'087766554433', instansi:'Dinas Kesehatan', jabatan:'Analis Kebijakan', ujian:'SKD CPNS 2025 — Paket A', ujian_count:4, nilai:77.8, attempts:[true,true,false], status:'aktif', bergabung:'5 Feb 2025',
+    riwayat:[{nama:'SKD CPNS 2025 — Paket A',tgl:'10 Jun 2025',nilai:77.8,lulus:true},{nama:'SKD CPNS 2025 — Paket B',tgl:'5 Jun 2025',nilai:74.2,lulus:true},{nama:'Simulasi SKD Sesi 3',tgl:'20 Mei 2025',nilai:80.1,lulus:true},{nama:'Latihan TWK',tgl:'10 Mei 2025',nilai:88.5,lulus:true}]},
+  {id:5, name:'Dewi Permatasari, S.H', nip:'199107292019032010', email:'d.permata@pemkot.id', hp:'081355443322', instansi:'Bagian Hukum', jabatan:'Analis Hukum', ujian:'SKD CPNS 2025 — Paket A', ujian_count:2, nilai:null, attempts:[false,false,false], status:'pending', bergabung:'14 Feb 2025',
+    riwayat:[]},
+  {id:6, name:'Budi Santoso', nip:'198503112009031006', email:'budi.s@dispora.id', hp:'089988776655', instansi:'Dispora', jabatan:'Pengelola Keolahragaan', ujian:'TKD PPPK Guru Batch 2', ujian_count:1, nilai:55.4, attempts:[true,false,false], status:'aktif', bergabung:'18 Feb 2025',
+    riwayat:[{nama:'TKD PPPK Guru Batch 2',tgl:'8 Jun 2025',nilai:55.4,lulus:false}]},
+  {id:7, name:'Nur Hidayah, S.Sos', nip:'199204032021032003', email:'nur.hidayah@bkpsdm.id', hp:'082211334455', instansi:'BKPSDM', jabatan:'Analis SDM Aparatur', ujian:'Diklat Kepemimpinan IV', ujian_count:3, nilai:88.0, attempts:[true,false,false], status:'aktif', bergabung:'22 Feb 2025',
+    riwayat:[{nama:'Diklat Kepemimpinan IV',tgl:'3 Jun 2025',nilai:88.0,lulus:true},{nama:'SKD CPNS 2025 — Paket A',tgl:'10 Jun 2025',nilai:81.5,lulus:true},{nama:'Simulasi TIU',tgl:'1 Jun 2025',nilai:79.0,lulus:true}]},
+  {id:8, name:'Hendra Wijaya, S.T', nip:'198901172017031004', email:'hendra.w@gmail.com', hp:'085577889900', instansi:'Dinas PUPR', jabatan:'Pengawas Bangunan', ujian:'SKD CPNS 2025 — Paket B', ujian_count:2, nilai:69.3, attempts:[true,true,false], status:'nonaktif', bergabung:'1 Mar 2025',
+    riwayat:[{nama:'SKD CPNS 2025 — Paket B',tgl:'5 Jun 2025',nilai:69.3,lulus:false},{nama:'Latihan TWK',tgl:'20 Mei 2025',nilai:72.1,lulus:true}]},
+  {id:9, name:'Lilis Suryani, A.Md', nip:'199509102020122006', email:'lilis.surya@dinkes.id', hp:'081399887766', instansi:'Dinas Kesehatan', jabatan:'Perawat Terampil', ujian:'TKD PPPK Guru Batch 2', ujian_count:1, nilai:73.6, attempts:[true,false,false], status:'aktif', bergabung:'8 Mar 2025',
+    riwayat:[{nama:'TKD PPPK Guru Batch 2',tgl:'8 Jun 2025',nilai:73.6,lulus:true}]},
+  {id:10, name:'Reza Firmansyah, S.Pd', nip:'199308162019031011', email:'reza.f@disdik.id', hp:'087612345678', instansi:'Dinas Pendidikan', jabatan:'Guru Ahli Pertama', ujian:'TKD PPPK Guru Batch 2', ujian_count:2, nilai:null, attempts:[false,false,false], status:'pending', bergabung:'15 Mar 2025',
+    riwayat:[]},
+  {id:11, name:'Fitri Andayani, S.AP', nip:'199011242018032008', email:'fitri.a@disdukcapil.id', hp:'082334455667', instansi:'Disdukcapil', jabatan:'Analis Administrasi', ujian:'SKD CPNS 2025 — Paket A', ujian_count:3, nilai:80.2, attempts:[true,false,false], status:'aktif', bergabung:'20 Mar 2025',
+    riwayat:[{nama:'SKD CPNS 2025 — Paket A',tgl:'10 Jun 2025',nilai:80.2,lulus:true},{nama:'Latihan TWK',tgl:'1 Jun 2025',nilai:85.0,lulus:true},{nama:'Simulasi TIU',tgl:'25 Mei 2025',nilai:76.3,lulus:true}]},
+  {id:12, name:'Wahyu Nugroho, S.E', nip:'198712052014031009', email:'wahyu.n@bpkad.id', hp:'089977665544', instansi:'BPKAD', jabatan:'Analis Keuangan', ujian:'Diklat Kepemimpinan IV', ujian_count:1, nilai:92.5, attempts:[true,false,false], status:'aktif', bergabung:'2 Apr 2025',
+    riwayat:[{nama:'Diklat Kepemimpinan IV',tgl:'3 Jun 2025',nilai:92.5,lulus:true}]},
+  {id:13, name:'Anggraeni Putri, S.Gz', nip:'199606182021032005', email:'anggraeni.p@dinkes.id', hp:'081544556677', instansi:'Dinas Kesehatan', jabatan:'Nutrisionis Terampil', ujian:'SKD CPNS 2025 — Paket A', ujian_count:1, nilai:58.9, attempts:[true,false,false], status:'aktif', bergabung:'10 Apr 2025',
+    riwayat:[{nama:'SKD CPNS 2025 — Paket A',tgl:'10 Jun 2025',nilai:58.9,lulus:false}]},
+  {id:14, name:'Teguh Prabowo, S.H', nip:'198604072015031003', email:'teguh.p@kejaksaan.id', hp:'082266778899', instansi:'Kejaksaan', jabatan:'Jaksa Fungsional', ujian:'Diklat Kepemimpinan IV', ujian_count:2, nilai:87.3, attempts:[true,true,false], status:'nonaktif', bergabung:'18 Apr 2025',
+    riwayat:[{nama:'Diklat Kepemimpinan IV',tgl:'3 Jun 2025',nilai:87.3,lulus:true},{nama:'SKD CPNS 2024',tgl:'15 Nov 2024',nilai:80.0,lulus:true}]},
+  {id:15, name:'Maulida Sari, S.Pd.I', nip:'199403102022032002', email:'maulida.s@kemenag.id', hp:'085133445566', instansi:'Kemenag Kota', jabatan:'Penyuluh Agama', ujian:'TKD PPPK Guru Batch 2', ujian_count:1, nilai:71.0, attempts:[true,false,false], status:'aktif', bergabung:'25 Apr 2025',
+    riwayat:[{nama:'TKD PPPK Guru Batch 2',tgl:'8 Jun 2025',nilai:71.0,lulus:true}]},
+];
+
+/* ══════════ HELPERS ══════════ */
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function scoreClass(v) {
+  if (v === null) return 'sc-none';
+  return v >= 75 ? 'sc-hi' : v >= 65 ? 'sc-md' : 'sc-lo';
+}
+function scoreDisplay(v) {
+  return v === null ? '—' : v.toFixed(1);
+}
+
+/* ══════════ RENDER TABLE ══════════ */
+function renderTable() {
+  const tbody = document.getElementById('pesertaBody');
+  tbody.innerHTML = pesertaData.map((p, i) => {
+    const g = gradients[i % gradients.length];
+    const statusCls = {aktif:'s-aktif', nonaktif:'s-nonaktif', pending:'s-pending'}[p.status];
+    const statusLbl = {aktif:'Aktif', nonaktif:'Nonaktif', pending:'Pending'}[p.status];
+    const dots = p.attempts.map((a, ai) =>
+      `<span class="attempt-dot ${a ? (p.nilai && p.nilai >= 65 ? 'pass' : 'fail') : ''}" title="Percobaan ${ai+1}"></span>`
+    ).join('');
+    return `
+      <tr>
+        <td class="cb-col"><input type="checkbox" class="cb row-cb" onchange="onRowCb()"></td>
+        <td>
+          <div class="p-cell">
+            <div class="p-ava" style="--g:${g}">${initials(p.name)}</div>
+            <div class="p-info">
+              <div class="p-name">${p.name}</div>
+              <div class="p-email">${p.email}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">${p.nip}</td>
+        <td>
+          <div style="font-size:12.5px;font-weight:600;color:var(--ink)">${p.instansi}</div>
+          <div style="font-size:11px;color:var(--ink-4);margin-top:1px">${p.jabatan}</div>
+        </td>
+        <td>
+          <div style="font-size:12.5px;color:var(--ink);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis">${p.ujian}</div>
+          <div style="font-size:11px;color:var(--ink-4);margin-top:1px">${p.ujian_count} ujian terdaftar</div>
+        </td>
+        <td class="c"><span class="score-pill ${scoreClass(p.nilai)}">${scoreDisplay(p.nilai)}</span></td>
+        <td class="c">
+          <div class="attempt-bar" style="justify-content:center">
+            <div class="attempt-dots">${dots}</div>
+            <span style="font-size:11px;color:var(--ink-4)">${p.attempts.filter(Boolean).length}/${p.attempts.length}</span>
+          </div>
+        </td>
+        <td><span class="sbadge ${statusCls}">${statusLbl}</span></td>
+        <td style="font-family:var(--mono);font-size:11.5px;color:var(--ink-4)">${p.bergabung}</td>
+        <td>
+          <div class="row-acts">
+            <button class="row-btn" title="Detail" onclick="openDrawer(${p.id})">👁</button>
+            <button class="row-btn" title="Edit" onclick="alert('Edit: ${p.name}')">✏️</button>
+            <button class="row-btn" title="Reset token" onclick="alert('Reset token: ${p.name}')">🔑</button>
+            <button class="row-btn d" title="Nonaktifkan" onclick="alert('Nonaktifkan: ${p.name}')">⛔</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ══════════ DRAWER DETAIL ══════════ */
+function openDrawer(id) {
+  const p = pesertaData.find(x => x.id === id);
+  if (!p) return;
+  const g = gradients[(id - 1) % gradients.length];
+
+  document.getElementById('drawerTitle').textContent = p.name;
+  document.getElementById('drawerSub').textContent = `${p.instansi} · ${p.jabatan}`;
+
+  const avgNilai = p.riwayat.length
+    ? (p.riwayat.reduce((s, r) => s + r.nilai, 0) / p.riwayat.length).toFixed(1)
+    : '—';
+  const lulusCount = p.riwayat.filter(r => r.lulus).length;
+
+  const historyHTML = p.riwayat.length ? p.riwayat.map(r => {
+    const sc = r.nilai >= 75 ? '#059669' : r.nilai >= 65 ? '#D97706' : '#E11D48';
+    return `<div class="history-item">
+      <div class="hi-icon" style="background:${r.lulus ? 'var(--emerald-s)' : 'var(--rose-s)'}">${r.lulus ? '✅' : '❌'}</div>
+      <div class="hi-body">
+        <div class="hi-title">${r.nama}</div>
+        <div class="hi-meta">${r.tgl}</div>
+      </div>
+      <div class="hi-score">
+        <div class="hi-score-num" style="color:${sc}">${r.nilai.toFixed(1)}</div>
+        <div class="hi-score-lbl">${r.lulus ? 'LULUS' : 'TIDAK LULUS'}</div>
+      </div>
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:24px;color:var(--ink-4);font-size:13px">Belum ada riwayat ujian</div>`;
+
+  // Mini chart bars
+  const chartHTML = p.riwayat.length ? `
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Tren Nilai</div>
+      <div class="mini-chart">
+        ${p.riwayat.map(r => {
+          const h = Math.round((r.nilai / 100) * 36);
+          const cls = r.nilai >= 75 ? 'hi' : r.nilai >= 65 ? 'md' : 'lo';
+          return `<div class="mini-bar ${cls}" style="height:${h}px" title="${r.nama}: ${r.nilai}"></div>`;
+        }).reverse().join('')}
+      </div>
+    </div>` : '';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="d-profile">
+      <div class="d-ava" style="--g:${g}">${initials(p.name)}</div>
+      <div>
+        <div class="d-info-name">${p.name}</div>
+        <div class="d-info-email">${p.email}</div>
+        <div class="d-info-meta">
+          <span class="d-tag">${p.instansi}</span>
+          <span class="d-tag">${p.jabatan}</span>
+          <span class="d-tag sbadge ${p.status === 'aktif' ? 's-aktif' : p.status === 'nonaktif' ? 's-nonaktif' : 's-pending'}" style="font-size:11px">${p.status === 'aktif' ? 'Aktif' : p.status === 'nonaktif' ? 'Nonaktif' : 'Pending'}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-section-title">📋 Data Diri</div>
+      <div class="d-row"><span class="d-row-label">NIP / NIK</span><span class="d-row-val" style="font-family:var(--mono);font-size:12px">${p.nip}</span></div>
+      <div class="d-row"><span class="d-row-label">No. HP</span><span class="d-row-val">${p.hp}</span></div>
+      <div class="d-row"><span class="d-row-label">Bergabung</span><span class="d-row-val">${p.bergabung}</span></div>
+      <div class="d-row"><span class="d-row-label">Ujian Terdaftar</span><span class="d-row-val">${p.ujian_count} ujian</span></div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-section-title">📊 Statistik Ujian</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--ink);font-family:var(--mono)">${p.riwayat.length}</div>
+          <div style="font-size:11px;color:var(--ink-4);margin-top:2px">Total Ujian</div>
+        </div>
+        <div style="background:var(--emerald-s);border-radius:var(--r-sm);padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--emerald);font-family:var(--mono)">${lulusCount}</div>
+          <div style="font-size:11px;color:var(--emerald);margin-top:2px">Lulus</div>
+        </div>
+        <div style="background:${parseFloat(avgNilai) >= 75 ? 'var(--emerald-s)' : parseFloat(avgNilai) >= 65 ? 'var(--amber-s)' : 'var(--rose-s)'};border-radius:var(--r-sm);padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:${parseFloat(avgNilai) >= 75 ? 'var(--emerald)' : parseFloat(avgNilai) >= 65 ? 'var(--amber)' : 'var(--rose)'};font-family:var(--mono)">${avgNilai}</div>
+          <div style="font-size:11px;color:var(--ink-4);margin-top:2px">Rata-rata</div>
+        </div>
+      </div>
+      ${chartHTML}
+    </div>
+
+    <div class="d-section">
+      <div class="d-section-title">🔑 Kode Akses Aktif</div>
+      <div class="token-box" style="margin-bottom:0">
+        <div class="token-val">${generateToken()}</div>
+        <button class="token-copy" onclick="copyToken()">📋 Salin</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--ink-4);margin-top:8px">Untuk ujian: <strong style="color:var(--ink-2)">${p.ujian}</strong></div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-section-title">📜 Riwayat Ujian</div>
+      ${historyHTML}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-primary" style="flex:1;justify-content:center" onclick="openModal('modalDaftar');closeDrawer()">📋 Daftarkan ke Ujian</button>
+      <button class="btn-secondary" onclick="alert('Edit profil')">✏️ Edit</button>
+      <button class="btn-secondary" style="color:var(--rose);border-color:rgba(225,29,72,.2)" onclick="alert('Nonaktifkan peserta')">⛔</button>
+    </div>
+  `;
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ══════════ UTILITIES ══════════ */
+function generateToken() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let t = '';
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) t += '-';
+    t += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return t;
+}
+
+function copyToken() {
+  const t = document.getElementById('tokenDisplay');
+  if (t) { navigator.clipboard.writeText(t.textContent).catch(()=>{}); }
+  alert('Kode akses disalin ke clipboard!');
+}
+
+function showTokenModal() {
+  document.getElementById('tokenDisplay').textContent = generateToken();
+  openModal('modalToken');
+}
+
+/* ══════════ BULK SELECTION ══════════ */
+function onRowCb() {
+  const sel = document.querySelectorAll('.row-cb:checked').length;
+  const all = document.querySelectorAll('.row-cb').length;
+  const bar = document.getElementById('bulkBar');
+  bar.classList.toggle('hidden', sel === 0);
+  document.getElementById('bulkCount').textContent = `${sel} peserta dipilih`;
+  document.getElementById('daftarSub').textContent = `${sel} peserta terpilih`;
+  const ca = document.getElementById('checkAll');
+  ca.indeterminate = sel > 0 && sel < all;
+  ca.checked = sel === all;
+}
+function toggleAll(cb) {
+  document.querySelectorAll('.row-cb').forEach(c => c.checked = cb.checked);
+  onRowCb();
+}
+function clearSel() {
+  document.querySelectorAll('.row-cb').forEach(c => c.checked = false);
+  document.getElementById('checkAll').checked = false;
+  onRowCb();
+}
+
+/* ══════════ FILTER TABS ══════════ */
+function setTab(el, gid) {
+  document.getElementById(gid).querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ══════════ MODAL ══════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open');    document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+    closeDrawer();
+  }
+});
+
+/* ══════════ SIDEBAR ══════════ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+/* ══════════ TOPBAR DATE ══════════ */
+(function() {
+  const el = document.getElementById('topbarDate');
+  const D = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const M = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const n = new Date();
+  el.textContent = `${D[n.getDay()]}, ${n.getDate()} ${M[n.getMonth()]} ${n.getFullYear()}`;
+})();
+
+/* ══════════ PARTICLE ══════════ */
+(function() {
+  const cv = document.getElementById('particle-canvas'), ctx = cv.getContext('2d');
+  let W, H, pts = [];
+  function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+  resize(); addEventListener('resize', resize);
+  function P() { this.x = Math.random()*W; this.y = Math.random()*H; this.vx = (Math.random()-.5)*.3; this.vy = (Math.random()-.5)*.3; this.r = Math.random()*1.5+.5; this.a = Math.random()*.22+.04; }
+  P.prototype.update = function() { this.x += this.vx; this.y += this.vy; if(this.x<0)this.x=W; if(this.x>W)this.x=0; if(this.y<0)this.y=H; if(this.y>H)this.y=0; };
+  P.prototype.draw = function() { ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle=`rgba(79,70,229,${this.a})`; ctx.fill(); };
+  for (let i = 0; i < 55; i++) pts.push(new P());
+  function drawL() {
+    for (let i = 0; i < pts.length; i++)
+      for (let j = i+1; j < pts.length; j++) {
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.sqrt(dx*dx+dy*dy);
+        if (d < 115) { ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.strokeStyle=`rgba(79,70,229,${.055*(1-d/115)})`; ctx.lineWidth=1; ctx.stroke(); }
+      }
+  }
+  function loop() { ctx.clearRect(0,0,W,H); pts.forEach(p=>{p.update();p.draw();}); drawL(); requestAnimationFrame(loop); }
+  loop();
+})();
+
+/* ══════════ INIT ══════════ */
+renderTable();
+</script>
+</body>
+</html>

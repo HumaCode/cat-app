@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\XenditWebhookController;
 use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ParticipantController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -33,6 +34,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/kategori', [CategoryController::class, 'store'])->name('kategori.store');
     Route::put('/kategori/{id}', [CategoryController::class, 'update'])->name('kategori.update');
     Route::delete('/kategori/{id}', [CategoryController::class, 'destroy'])->name('kategori.destroy');
+
+    // Peserta
+    Route::get('/peserta', [ParticipantController::class, 'index'])->name('peserta.index');
+    Route::post('/peserta', [ParticipantController::class, 'store'])->name('peserta.store');
+    Route::put('/peserta/{id}', [ParticipantController::class, 'update'])->name('peserta.update');
+    Route::delete('/peserta/{id}', [ParticipantController::class, 'destroy'])->name('peserta.destroy');
+    Route::post('/peserta/bulk', [ParticipantController::class, 'bulkAction'])->name('peserta.bulk');
+    Route::post('/peserta/import', [ParticipantController::class, 'import'])->name('peserta.import');
 
     // Bank Soal
     Route::get('/bank-soal', [QuestionBankController::class, 'index'])->name('bank-soal.index');

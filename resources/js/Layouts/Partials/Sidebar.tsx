@@ -77,11 +77,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <div className="nav-icon">🏦</div>
                             Bank Soal
                         </Link>
-                        <button className="nav-item" onClick={handleItemClick}>
+                        <Link
+                            href={route('peserta.index')}
+                            onClick={handleItemClick}
+                            className={`nav-item ${currentRoute.startsWith('peserta') ? 'active' : ''}`}
+                        >
                             <div className="nav-icon">👥</div>
                             Peserta
-                            <span className="nav-badge amber">12</span>
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="nav-section">
