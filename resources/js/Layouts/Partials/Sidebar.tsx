@@ -62,6 +62,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <span className="nav-badge teal">3</span>
                         </button>
                         <Link
+                            href={route('kategori.index')}
+                            onClick={handleItemClick}
+                            className={`nav-item ${currentRoute.startsWith('kategori') ? 'active' : ''}`}
+                        >
+                            <div className="nav-icon"><i className="bi bi-tags-fill"></i></div>
+                            Kategori Soal
+                        </Link>
+                        <Link
                             href={route('bank-soal.index')}
                             onClick={handleItemClick}
                             className={`nav-item ${currentRoute.startsWith('bank-soal') ? 'active' : ''}`}

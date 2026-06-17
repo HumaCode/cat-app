@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\XenditWebhookController;
 use App\Http\Controllers\QuestionBankController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,6 +27,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Kategori
+    Route::get('/kategori', [CategoryController::class, 'index'])->name('kategori.index');
+    Route::post('/kategori', [CategoryController::class, 'store'])->name('kategori.store');
+    Route::put('/kategori/{id}', [CategoryController::class, 'update'])->name('kategori.update');
+    Route::delete('/kategori/{id}', [CategoryController::class, 'destroy'])->name('kategori.destroy');
 
     // Bank Soal
     Route::get('/bank-soal', [QuestionBankController::class, 'index'])->name('bank-soal.index');

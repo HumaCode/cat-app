@@ -21,6 +21,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         }
 
         return $query->withCount('questions')
+            ->orderBy('created_at', 'desc')
             ->orderBy('order_column')
             ->get();
     }

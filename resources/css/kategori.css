@@ -1,0 +1,265 @@
+/* ============================================================
+   KATEGORI.CSS  —  Category Management Page Styles
+   ============================================================ */
+
+/* --- STATS STRIP --- */
+.kat-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kat-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-xs);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.22s;
+}
+.kat-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.kat-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--clr, var(--indigo));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(.22, 1, .36, 1);
+}
+.kat-stat-card:hover::before { transform: scaleX(1); }
+.kat-stat-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--r-sm);
+  background: var(--clr-s, var(--indigo-s));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--clr, var(--indigo));
+  flex-shrink: 0;
+}
+.kat-stat-body { flex: 1; min-width: 0; }
+.kat-stat-label {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--ink-4);
+}
+.kat-stat-num {
+  font-size: 22px; font-weight: 800; color: var(--ink);
+  letter-spacing: -0.5px; line-height: 1.2;
+}
+
+/* --- TOOLBAR --- */
+.kat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.kat-toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
+.kat-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0 12px; height: 38px;
+  transition: border-color 0.18s;
+  min-width: 220px;
+}
+.kat-search-wrap:focus-within { border-color: var(--indigo); }
+.kat-search-wrap input {
+  border: none; background: transparent; outline: none;
+  font-size: 13px; color: var(--ink); width: 100%;
+}
+.kat-filter-select {
+  height: 38px; padding: 0 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px; color: var(--ink);
+  cursor: pointer; outline: none;
+  transition: border-color 0.18s;
+}
+.kat-filter-select:focus { border-color: var(--indigo); }
+.btn-add-kat {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 18px; height: 38px;
+  background: var(--indigo); color: #fff;
+  border: none; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.18s; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+.btn-add-kat:hover {
+  background: var(--indigo-d, #4338ca);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+
+/* --- TABLE --- */
+.kat-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+.kat-table {
+  width: 100%; border-collapse: collapse;
+}
+.kat-table thead tr {
+  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--border);
+}
+.kat-table th {
+  padding: 11px 16px; text-align: left;
+  font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--ink-4);
+  white-space: nowrap;
+}
+.kat-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 13px; color: var(--ink-2);
+  vertical-align: middle;
+}
+.kat-table tbody tr {
+  transition: background 0.15s;
+}
+.kat-table tbody tr:hover { background: var(--bg-2); }
+.kat-table tbody tr:last-child td { border-bottom: none; }
+.kat-icon-preview {
+  width: 32px; height: 32px;
+  border-radius: var(--r-xs);
+  background: var(--indigo-s);
+  border: 1px solid rgba(79,70,229,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--indigo);
+}
+.kat-name-cell { display: flex; align-items: center; gap: 10px; }
+.kat-name-main { font-weight: 600; color: var(--ink); font-size: 13.5px; }
+.kat-name-sub  { font-size: 11.5px; color: var(--ink-4); margin-top: 1px; }
+.kat-parent-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  font-size: 11.5px; color: var(--ink-3); font-weight: 500;
+}
+.kat-count-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--sky-s); color: var(--sky);
+  font-size: 12px; font-weight: 700;
+}
+.kat-count-badge.zero {
+  background: var(--surface-2); color: var(--ink-4);
+}
+.kat-actions { display: flex; align-items: center; gap: 6px; }
+.kat-btn-icon {
+  width: 30px; height: 30px; border-radius: var(--r-xs);
+  border: 1px solid var(--border-2);
+  background: var(--surface); color: var(--ink-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px;
+  transition: all 0.15s;
+}
+.kat-btn-icon:hover { border-color: var(--indigo); color: var(--indigo); background: var(--indigo-s); }
+.kat-btn-icon.danger:hover { border-color: var(--rose); color: var(--rose); background: var(--rose-s); }
+
+/* --- EMPTY STATE --- */
+.kat-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--ink-4);
+}
+.kat-empty-icon { font-size: 42px; opacity: 0.35; margin-bottom: 12px; }
+.kat-empty-title { font-size: 15px; font-weight: 600; color: var(--ink-3); margin-bottom: 4px; }
+.kat-empty-desc  { font-size: 12.5px; }
+
+/* --- PAGINATION --- */
+.kat-pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-2);
+  background: var(--surface-2);
+  font-size: 12.5px; color: var(--ink-4);
+}
+.kat-page-btns { display: flex; gap: 4px; }
+.kat-page-btn {
+  width: 30px; height: 30px; border-radius: var(--r-xs);
+  border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px;
+  transition: all 0.15s;
+}
+.kat-page-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+.kat-page-btn.active { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+.kat-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- MODAL ICON PICKER (shared with Kategori modals) --- */
+.kat-icon-picker {
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  padding: 12px;
+  background: var(--bg-2);
+  margin-top: 8px;
+}
+.kat-icon-search {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); padding: 4px 10px;
+  border-radius: 6px; border: 1.5px solid var(--border);
+  margin-bottom: 10px;
+}
+.kat-icon-search input {
+  border: none; background: transparent; outline: none;
+  font-size: 12px; color: var(--ink); width: 100%; padding: 2px 0;
+}
+.kat-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  max-height: 130px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.kat-icon-btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  cursor: pointer; transition: all 0.15s;
+}
+.kat-icon-btn:hover { border-color: var(--indigo); background: var(--indigo-s); }
+.kat-icon-btn.selected {
+  border: 1.5px solid var(--indigo);
+  background: rgba(79, 70, 229, 0.08);
+}
+.kat-icon-btn i { font-size: 16px; color: var(--ink-2); }
+.kat-icon-btn.selected i { color: var(--indigo); }
+.kat-icon-label {
+  font-size: 9px; color: var(--ink-4); margin-top: 4px;
+  text-align: center; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; width: 100%;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 900px) {
+  .kat-stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .kat-toolbar { flex-direction: column; align-items: flex-start; }
+  .kat-toolbar-left { width: 100%; }
+  .kat-search-wrap { width: 100%; min-width: unset; }
+}
+@media (max-width: 600px) {
+  .kat-stats-strip { grid-template-columns: 1fr; }
+}
