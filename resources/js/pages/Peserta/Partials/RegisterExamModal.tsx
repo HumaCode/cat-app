@@ -1,4 +1,5 @@
 import { useEffect, FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from '@inertiajs/react';
 import { ParticipantItem } from './DetailDrawer';
 
@@ -69,7 +70,7 @@ export default function RegisterExamModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="modal-overlay open" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px' }}>
                 <form onSubmit={handleSubmit}>
@@ -164,6 +165,7 @@ export default function RegisterExamModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

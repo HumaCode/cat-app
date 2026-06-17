@@ -1,4 +1,5 @@
 import { useRef, useState, ChangeEvent, FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from '@inertiajs/react';
 
 interface ImportModalProps {
@@ -55,7 +56,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="modal-overlay open" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
                 <form onSubmit={handleSubmit}>
@@ -98,7 +99,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
                         {/* Ujian selection */}
                         <div className="form-field">
                             <label className="form-label">
-                                Daftarkan ke Ujian <span className="req">*</span>
+                                Pilih Paket Ujian <span className="req">*</span>
                             </label>
                             <select
                                 className="form-select"
@@ -112,6 +113,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
                                         {exam}
                                     </option>
                                 ))}
+                                {/* Add standard fallback exams if none seeded */}
                                 {!exams.includes('SKD CPNS 2025 — Paket A') && (
                                     <option value="SKD CPNS 2025 — Paket A">SKD CPNS 2025 — Paket A</option>
                                 )}
@@ -125,22 +127,26 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
                             {errors.ujian && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.ujian}</span>}
                         </div>
 
-                        {/* Upload Zone */}
+                        {/* File Upload Zone */}
                         <div className="form-field">
-                            <label className="form-label">Upload File Excel (.xlsx, .xls)</label>
+                            <label className="form-label">
+                                File Excel (.xlsx, .xls) <span className="req">*</span>
+                            </label>
                             <input
                                 type="file"
                                 ref={fileInputRef}
-                                style={{ display: 'none' }}
-                                accept=".xlsx, .xls, .csv"
                                 onChange={handleFileChange}
+                                accept=".xlsx, .xls"
+                                style={{ display: 'none' }}
                             />
                             <div className="upload-zone" onClick={triggerFileSelect}>
-                                <div className="upload-icon">📊</div>
+                                <div className="upload-icon">📄</div>
                                 <div className="upload-label">
-                                    {fileName ? fileName : 'Pilih atau drop file template Anda di sini'}
+                                    {fileName ? fileName : 'Pilih file excel...'}
                                 </div>
-                                <div className="upload-sub">Format file .xlsx atau .xls (Maks. 5 MB)</div>
+                                <div className="upload-sub">
+                                    Format file didukung: .xlsx, .xls (Maks. 5MB)
+                                </div>
                             </div>
                             {errors.file && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.file}</span>}
                         </div>
@@ -176,6 +182,7 @@ export default function ImportModal({ isOpen, onClose, exams, showToast }: Impor
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

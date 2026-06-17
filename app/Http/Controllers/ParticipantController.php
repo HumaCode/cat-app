@@ -78,7 +78,7 @@ class ParticipantController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $paginated = $query->paginate($request->query('per_page', 20))->withQueryString();
+        $paginated = $query->paginate($request->query('per_page', 10))->withQueryString();
 
         // Get unique exams and departments for filtering
         $allExams = $participants->pluck('exam_data.ujian')->filter()->unique()->values()->all();
@@ -95,7 +95,7 @@ class ParticipantController extends Controller
             ],
             'exams' => $allExams,
             'departments' => $allInstansi,
-            'filters' => $request->only(['status', 'ujian', 'instansi', 'sort', 'search', 'per_page']),
+            'filters' => (object) $request->only(['status', 'ujian', 'instansi', 'sort', 'search', 'per_page']),
         ]);
     }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import '../../../css/bank-soal.css'; // Shared CSS
@@ -87,16 +87,36 @@ export default function PesertaIndex() {
 
     const [deleteTarget, setDeleteTarget] = useState<ParticipantItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-    // Filter states
-    const [searchVal, setSearchVal] = useState(filters.search || '');
-    const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
-    const [ujianFilter, setUjianFilter] = useState(filters.ujian || 'all');
-    const [instansiFilter, setInstansiFilter] = useState(filters.instansi || 'all');
-    const [sortFilter, setSortFilter] = useState(filters.sort || 'newest');
+
+    // Filter states with defensive type checking to handle PHP serialization quirks (e.g., empty associative array serializing to JS array where filters.sort is a function)
+    const [searchVal, setSearchVal] = useState(typeof filters?.search === 'string' ? filters.search : '');
+    const [statusFilter, setStatusFilter] = useState(typeof filters?.status === 'string' ? filters.status : 'all');
+    const [ujianFilter, setUjianFilter] = useState(typeof filters?.ujian === 'string' ? filters.ujian : 'all');
+    const [instansiFilter, setInstansiFilter] = useState(typeof filters?.instansi === 'string' ? filters.instansi : 'all');
+    const [sortFilter, setSortFilter] = useState(typeof filters?.sort === 'string' ? filters.sort : 'newest');
 
     // Selection states
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    // Prepare search select options
+    const ujianOptions = [
+        { value: 'all', label: 'Semua Ujian' },
+        ...exams.map((ex: string) => ({ value: ex, label: ex }))
+    ];
+    if (!exams.includes('SKD CPNS 2025 — Paket A')) {
+        ujianOptions.push({ value: 'SKD CPNS 2025 — Paket A', label: 'SKD CPNS 2025 — Paket A' });
+    }
+    if (!exams.includes('TKD PPPK Guru Batch 2')) {
+        ujianOptions.push({ value: 'TKD PPPK Guru Batch 2', label: 'TKD PPPK Guru Batch 2' });
+    }
+
+    const instansiOptions = [
+        { value: 'all', label: 'Semua Instansi' },
+        ...departments.map((dep: string) => ({ value: dep, label: dep }))
+    ];
 
     // Handle session flashes
     useEffect(() => {
@@ -235,21 +255,28 @@ export default function PesertaIndex() {
     };
 
     const handleBulkDelete = () => {
-        if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} peserta terpilih?`)) {
-            router.post(
-                route('peserta.bulk'),
-                {
-                    action: 'delete',
-                    ids: selectedIds,
+        setShowBulkDeleteConfirm(true);
+    };
+
+    const handleBulkDeleteConfirm = () => {
+        setIsBulkDeleting(true);
+        router.post(
+            route('peserta.bulk'),
+            {
+                action: 'delete',
+                ids: selectedIds,
+            },
+            {
+                onSuccess: () => {
+                    showToast(`${selectedIds.length} peserta berhasil dihapus.`, 'success');
+                    setSelectedIds([]);
+                    setShowBulkDeleteConfirm(false);
                 },
-                {
-                    onSuccess: () => {
-                        showToast(`${selectedIds.length} peserta berhasil dihapus.`, 'success');
-                        setSelectedIds([]);
-                    },
+                onFinish: () => {
+                    setIsBulkDeleting(false);
                 }
-            );
-        }
+            }
+        );
     };
 
     // Check if filters are dirty
@@ -370,44 +397,26 @@ export default function PesertaIndex() {
                     <div className="fdiv"></div>
 
                     {/* Ujian Filter */}
-                    <select
-                        className="fsel"
+                    <SearchableSelect
                         value={ujianFilter}
-                        onChange={(e) => {
-                            setUjianFilter(e.target.value);
-                            applyFilters({ ujian: e.target.value });
+                        onChange={(val) => {
+                            setUjianFilter(val);
+                            applyFilters({ ujian: val });
                         }}
-                    >
-                        <option value="all">Semua Ujian</option>
-                        {exams.map((ex, idx) => (
-                            <option key={idx} value={ex}>
-                                {ex}
-                            </option>
-                        ))}
-                        {!exams.includes('SKD CPNS 2025 — Paket A') && (
-                            <option value="SKD CPNS 2025 — Paket A">SKD CPNS 2025 — Paket A</option>
-                        )}
-                        {!exams.includes('TKD PPPK Guru Batch 2') && (
-                            <option value="TKD PPPK Guru Batch 2">TKD PPPK Guru Batch 2</option>
-                        )}
-                    </select>
+                        placeholder="Semua Ujian"
+                        options={ujianOptions}
+                    />
 
                     {/* Instansi Filter */}
-                    <select
-                        className="fsel"
+                    <SearchableSelect
                         value={instansiFilter}
-                        onChange={(e) => {
-                            setInstansiFilter(e.target.value);
-                            applyFilters({ instansi: e.target.value });
+                        onChange={(val) => {
+                            setInstansiFilter(val);
+                            applyFilters({ instansi: val });
                         }}
-                    >
-                        <option value="all">Semua Instansi</option>
-                        {departments.map((dep, idx) => (
-                            <option key={idx} value={dep}>
-                                {dep}
-                            </option>
-                        ))}
-                    </select>
+                        placeholder="Semua Instansi"
+                        options={instansiOptions}
+                    />
 
                     {/* Sorting Filter */}
                     <select
@@ -424,19 +433,39 @@ export default function PesertaIndex() {
                         <option value="ujian_desc">Ujian Terbanyak</option>
                     </select>
 
-                    <div className="fspacer"></div>
-
-                    {/* Reset Button */}
+                    {/* Reset Button (placed next to Terbaru/sorting filter) */}
                     {isFiltered && (
                         <button
                             type="button"
                             className="btn-secondary"
                             onClick={handleResetFilters}
-                            style={{ height: '32px', padding: '0 12px', fontSize: '12.5px', border: '1px solid var(--rose)', color: 'var(--rose)' }}
+                            style={{
+                                height: '32px',
+                                padding: '0 12px',
+                                fontSize: '12.5px',
+                                border: '1px solid #f43f5e',
+                                color: '#f43f5e',
+                                background: 'transparent',
+                                borderRadius: 'var(--r-xs)',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#fff1f2';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                            }}
                         >
-                            Reset Filter
+                            ✕ Reset Filter
                         </button>
                     )}
+
+                    <div className="fspacer"></div>
 
                     {/* Search Field */}
                     <form onSubmit={handleSearchSubmit}>
@@ -458,16 +487,16 @@ export default function PesertaIndex() {
                         <span className="bulk-count">⚡ {selectedIds.length} peserta terpilih</span>
                         <div className="bulk-actions">
                             <button type="button" className="bulk-btn white" onClick={openRegisterExamBulk}>
-                                📋 Daftarkan ke Ujian
+                                <i className="bi bi-clipboard-check" style={{ marginRight: '6px' }} /> Daftarkan ke Ujian
                             </button>
                             <button type="button" className="bulk-btn light" onClick={() => handleBulkStatusChange('aktif')}>
-                                ✓ Aktifkan
+                                <i className="bi bi-check-lg" style={{ marginRight: '6px' }} /> Aktifkan
                             </button>
                             <button type="button" className="bulk-btn light" onClick={() => handleBulkStatusChange('nonaktif')}>
-                                ⛔ Nonaktifkan
+                                <i className="bi bi-dash-circle" style={{ marginRight: '6px' }} /> Nonaktifkan
                             </button>
-                            <button type="button" className="bulk-btn danger" onClick={handleBulkDelete}>
-                                🗑️ Hapus
+                            <button type="button" className="bulk-btn danger-b" onClick={handleBulkDelete}>
+                                <i className="bi bi-trash3" style={{ marginRight: '6px' }} /> Hapus
                             </button>
                             <button type="button" className="bulk-btn light" onClick={() => setSelectedIds([])}>
                                 Batal
@@ -485,10 +514,10 @@ export default function PesertaIndex() {
                         </div>
                         <div className="header-actions">
                             <button type="button" className="btn-secondary" onClick={() => setIsImportOpen(true)}>
-                                📥 Import Excel
+                                <i className="bi bi-download"></i> Import Excel
                             </button>
                             <button type="button" className="btn-primary" onClick={openAddParticipant}>
-                                ➕ Tambah Peserta
+                                <i className="bi bi-plus-lg"></i> Tambah Peserta
                             </button>
                         </div>
                     </div>
@@ -515,8 +544,8 @@ export default function PesertaIndex() {
                                 {participants.links.map((link, idx) => {
                                     // Make label prettier
                                     let label = link.label;
-                                    if (label.includes('Previous')) label = '«';
-                                    if (label.includes('Next')) label = '»';
+                                    if (label.includes('Previous')) label = '&lt;';
+                                    if (label.includes('Next')) label = '&gt;';
 
                                     return (
                                         <button
@@ -600,6 +629,15 @@ export default function PesertaIndex() {
                 onConfirm={handleDeleteConfirm}
                 onCancel={() => setDeleteTarget(null)}
                 isLoading={isDeleting}
+            />
+
+            <ConfirmDeleteModal
+                isOpen={showBulkDeleteConfirm}
+                title={`Hapus ${selectedIds.length} Peserta?`}
+                message={`Apakah Anda yakin ingin menghapus ${selectedIds.length} peserta terpilih secara permanen beserta semua data riwayat ujiannya?`}
+                onConfirm={handleBulkDeleteConfirm}
+                onCancel={() => setShowBulkDeleteConfirm(false)}
+                isLoading={isBulkDeleting}
             />
 
             {/* Toast Notifications */}
@@ -691,5 +729,148 @@ export default function PesertaIndex() {
                 </div>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+interface SearchableSelectProps {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    options: { value: string; label: string }[];
+}
+
+function SearchableSelect({ value, onChange, placeholder, options }: SearchableSelectProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [hoveredValue, setHoveredValue] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setSearchQuery('');
+        }
+    }, [isOpen]);
+
+    const selectedOption = options.find((o) => o.value === value);
+    const filteredOptions = options.filter((o) =>
+        o.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return (
+        <div ref={dropdownRef} className="custom-select-container" style={{ position: 'relative' }}>
+            <div
+                className="fsel"
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    background: 'var(--surface)',
+                    padding: '0 10px 0 10px',
+                    minWidth: '160px',
+                    height: '32px',
+                    backgroundImage: 'none'
+                }}
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <span style={{ color: selectedOption ? 'var(--ink-2)' : 'var(--ink-4)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12.5px' }}>
+                    {selectedOption ? selectedOption.label : placeholder}
+                </span>
+                <span style={{ color: 'var(--ink-4)', fontSize: '9px', marginLeft: '6px', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    ▼
+                </span>
+            </div>
+
+            {isOpen && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 4px)',
+                        left: 0,
+                        right: 0,
+                        zIndex: 1000,
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--r-xs)',
+                        boxShadow: 'var(--shadow-lg)',
+                        maxHeight: '220px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        minWidth: '220px'
+                    }}
+                >
+                    <div style={{ padding: '6px', borderBottom: '1px solid var(--border-2)', background: 'var(--surface-2)' }}>
+                        <input
+                            type="text"
+                            placeholder="Cari..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                fontSize: '12px',
+                                padding: '4px 8px',
+                                height: '28px',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--r-2xs)',
+                                background: 'var(--surface)',
+                                outline: 'none',
+                                color: 'var(--ink)'
+                            }}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                    <div style={{ overflowY: 'auto', flex: 1, padding: '3px 0' }}>
+                        {filteredOptions.length === 0 ? (
+                            <div style={{ padding: '6px 10px', fontSize: '12px', color: 'var(--ink-4)', textAlign: 'center' }}>
+                                Tidak ditemukan
+                            </div>
+                        ) : (
+                            filteredOptions.map((o) => {
+                                const isHovered = hoveredValue === o.value;
+                                const isSelected = value === o.value;
+                                return (
+                                    <div
+                                        key={o.value}
+                                        onMouseEnter={() => setHoveredValue(o.value)}
+                                        onMouseLeave={() => setHoveredValue(null)}
+                                        onClick={() => {
+                                            onChange(o.value);
+                                            setIsOpen(false);
+                                        }}
+                                        style={{
+                                            padding: '6px 12px',
+                                            fontSize: '12.5px',
+                                            color: isSelected ? 'var(--indigo)' : 'var(--ink)',
+                                            cursor: 'pointer',
+                                            background: isSelected ? 'var(--indigo-s)' : (isHovered ? 'var(--bg-2)' : 'transparent'),
+                                            fontWeight: isSelected ? 600 : 400,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {o.label}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

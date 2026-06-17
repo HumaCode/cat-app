@@ -177,35 +177,35 @@ export default function ParticipantTable({
                                         <div className="row-acts">
                                             <button
                                                 type="button"
-                                                className="row-btn"
+                                                className="row-btn row-btn-view"
                                                 title="Detail Profil"
                                                 onClick={() => onViewDetail(p)}
                                             >
-                                                👁
+                                                <i className="bi bi-eye"></i>
                                             </button>
                                             <button
                                                 type="button"
-                                                className="row-btn"
+                                                className="row-btn row-btn-edit"
                                                 title="Edit Peserta"
                                                 onClick={() => onEdit(p)}
                                             >
-                                                ✏️
+                                                <i className="bi bi-pencil"></i>
                                             </button>
                                             <button
                                                 type="button"
-                                                className="row-btn"
+                                                className="row-btn row-btn-key"
                                                 title="Daftarkan ke Ujian / Reset Token"
                                                 onClick={() => onRegisterExam(p)}
                                             >
-                                                🔑
+                                                <i className="bi bi-key"></i>
                                             </button>
                                             <button
                                                 type="button"
-                                                className="row-btn d"
+                                                className="row-btn row-btn-delete"
                                                 title="Hapus Peserta"
                                                 onClick={() => onDelete(p)}
                                             >
-                                                ⛔
+                                                <i className="bi bi-dash-circle"></i>
                                             </button>
                                         </div>
                                     </td>

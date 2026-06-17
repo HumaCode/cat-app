@@ -1,4 +1,5 @@
 import { useEffect, useState, FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from '@inertiajs/react';
 import { ParticipantItem } from './DetailDrawer';
 
@@ -90,7 +91,7 @@ export default function ParticipantFormModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className={`modal-overlay open`} onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
                 <form onSubmit={handleSubmit}>
@@ -198,15 +199,61 @@ export default function ParticipantFormModal({
                         {/* Status selection */}
                         <div className="form-field">
                             <label className="form-label">Status Peserta</label>
-                            <select
-                                className="form-select"
-                                value={data.status}
-                                onChange={(e) => setData('status', e.target.value as any)}
-                            >
-                                <option value="aktif">Aktif</option>
-                                <option value="nonaktif">Nonaktif</option>
-                                <option value="pending">Pending (Perlu Validasi)</option>
-                            </select>
+                            <div className="status-radio-group">
+                                <label className={`status-radio-card ${data.status === 'aktif' ? 'active' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="status"
+                                        value="aktif"
+                                        checked={data.status === 'aktif'}
+                                        onChange={() => setData('status', 'aktif')}
+                                    />
+                                    <span className="radio-indicator"></span>
+                                    <div className="radio-content">
+                                        <div className="radio-label">
+                                            <span className="radio-badge-dot aktif"></span>
+                                            Aktif
+                                        </div>
+                                        <div className="radio-desc">Akun aktif dan dapat langsung mengikuti ujian.</div>
+                                    </div>
+                                </label>
+
+                                <label className={`status-radio-card ${data.status === 'nonaktif' ? 'active' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="status"
+                                        value="nonaktif"
+                                        checked={data.status === 'nonaktif'}
+                                        onChange={() => setData('status', 'nonaktif')}
+                                    />
+                                    <span className="radio-indicator"></span>
+                                    <div className="radio-content">
+                                        <div className="radio-label">
+                                            <span className="radio-badge-dot nonaktif"></span>
+                                            Nonaktif
+                                        </div>
+                                        <div className="radio-desc">Akun ditangguhkan sementara dari sistem ujian.</div>
+                                    </div>
+                                </label>
+
+                                <label className={`status-radio-card ${data.status === 'pending' ? 'active' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="status"
+                                        value="pending"
+                                        checked={data.status === 'pending'}
+                                        onChange={() => setData('status', 'pending')}
+                                    />
+                                    <span className="radio-indicator"></span>
+                                    <div className="radio-content">
+                                        <div className="radio-label">
+                                            <span className="radio-badge-dot pending"></span>
+                                            Pending (Perlu Validasi)
+                                        </div>
+                                        <div className="radio-desc">Perlu diverifikasi atau divalidasi oleh administrator.</div>
+                                    </div>
+                                </label>
+                            </div>
                             {errors.status && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.status}</span>}
                         </div>
 
@@ -276,6 +323,7 @@ export default function ParticipantFormModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

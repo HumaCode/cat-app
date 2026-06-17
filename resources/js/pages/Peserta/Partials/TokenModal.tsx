@@ -1,4 +1,6 @@
 
+import { createPortal } from 'react-dom';
+
 interface TokenModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -14,7 +16,7 @@ export default function TokenModal({ isOpen, onClose, token, participantName }: 
         alert('Token berhasil disalin ke clipboard!');
     };
 
-    return (
+    return createPortal(
         <div className="modal-overlay open" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
                 <div className="modal-head">
@@ -48,6 +50,7 @@ export default function TokenModal({ isOpen, onClose, token, participantName }: 
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
