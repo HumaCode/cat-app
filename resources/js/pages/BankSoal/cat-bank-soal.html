@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bank Soal — CAT System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#18181F; --ink-2:#3D3D55; --ink-3:#7878A0; --ink-4:#B0B0CC; --ink-5:#E0E0EE;
+  --bg:#F7F6F2; --bg-2:#EFEEEA;
+  --surface:#FFFFFF; --surface-2:#FAFAF8;
+  --border:rgba(24,24,31,0.08); --border-2:rgba(24,24,31,0.05);
+  --indigo:#4F46E5; --indigo-h:#3730A3; --indigo-s:rgba(79,70,229,0.1);
+  --teal:#0D9488; --teal-s:rgba(13,148,136,0.1);
+  --amber:#D97706; --amber-s:rgba(217,119,6,0.1);
+  --rose:#E11D48; --rose-s:rgba(225,29,72,0.1);
+  --emerald:#059669; --emerald-s:rgba(5,150,105,0.1);
+  --violet:#7C3AED; --violet-s:rgba(124,58,237,0.1);
+  --sky:#0284C7; --sky-s:rgba(2,132,199,0.1);
+  --shadow-xs:0 1px 3px rgba(24,24,31,0.06);
+  --shadow-sm:0 2px 8px rgba(24,24,31,0.07);
+  --shadow-md:0 8px 24px rgba(24,24,31,0.09);
+  --shadow-lg:0 20px 60px rgba(24,24,31,0.10);
+  --r:14px; --r-sm:10px; --r-xs:7px;
+  --font:'Bricolage Grotesque',system-ui,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --mono:'DM Mono',monospace;
+  --sidebar-w:260px; --topbar-h:68px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+#particle-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transition:transform .3s cubic-bezier(.22,1,.36,1);box-shadow:var(--shadow-sm)}
+.sidebar-head{height:var(--topbar-h);display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border-2);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--indigo),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.35);flex-shrink:0}
+.brand-name{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.brand-name span{font-weight:400;color:var(--ink-3)}
+.sidebar-body{flex:1;overflow-y:auto;padding:16px 12px;scrollbar-width:none}
+.sidebar-body::-webkit-scrollbar{display:none}
+.nav-section{margin-bottom:24px}
+.nav-section-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);padding:0 10px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);font-size:13.5px;font-weight:500;color:var(--ink-3);transition:all .18s;position:relative;border:none;background:transparent;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg-2);color:var(--ink)}
+.nav-item.active{background:var(--indigo-s);color:var(--indigo)}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--indigo)}
+.nav-icon{width:32px;height:32px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;background:transparent;transition:background .18s}
+.nav-item.active .nav-icon{background:rgba(79,70,229,.12)}
+.nav-badge{margin-left:auto;background:var(--indigo);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;min-width:20px;text-align:center}
+.nav-badge.amber{background:var(--amber)}.nav-badge.teal{background:var(--teal)}
+.sidebar-foot{padding:16px 12px;border-top:1px solid var(--border-2);flex-shrink:0}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r-sm);cursor:pointer;transition:background .18s}
+.user-card:hover{background:var(--bg-2)}
+.user-ava{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--violet));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:var(--ink-4)}
+.user-more{color:var(--ink-4);font-size:14px}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:rgba(247,246,242,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:40}
+.topbar-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:var(--ink);flex:1}
+.topbar-title span{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--ink-3)}
+.hamburger{display:none;background:none;border:none;width:36px;height:36px;border-radius:var(--r-xs);align-items:center;justify-content:center;font-size:18px;color:var(--ink-2);transition:background .18s}
+.hamburger:hover{background:var(--bg-2)}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 14px;height:38px;transition:all .2s}
+.topbar-search:focus-within{border-color:rgba(79,70,229,.3);box-shadow:0 0 0 3px rgba(79,70,229,.07)}
+.topbar-search input{border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--ink);width:200px}
+.topbar-search input::placeholder{color:var(--ink-4)}
+.topbar-search-icon{color:var(--ink-4);font-size:14px}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink-3);transition:all .18s;position:relative}
+.icon-btn:hover{background:var(--bg-2);color:var(--ink)}
+.icon-btn .notif-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--rose);border:1.5px solid var(--surface)}
+.topbar-date{font-size:12px;color:var(--ink-4);white-space:nowrap}
+
+/* LAYOUT */
+.main-wrap{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);flex:1;position:relative;z-index:1;min-width:0}
+.main-inner{padding:28px 28px 40px;display:flex;flex-direction:column;gap:24px}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.page-header-text h1{font-family:var(--serif);font-size:clamp(22px,2.8vw,32px);font-weight:400;color:var(--ink);line-height:1.2}
+.page-header-text h1 em{font-style:italic;color:var(--indigo)}
+.page-header-text p{font-size:13.5px;color:var(--ink-3);margin-top:6px;font-weight:300}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border:none;border-radius:var(--r-sm);padding:11px 20px;font-family:var(--font);font-size:13.5px;font-weight:600;box-shadow:0 4px 16px rgba(24,24,31,.2);transition:all .2s;white-space:nowrap}
+.btn-primary:hover{background:var(--indigo);box-shadow:0 6px 20px rgba(79,70,229,.35);transform:translateY(-1px)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 18px;font-family:var(--font);font-size:13.5px;font-weight:500;transition:all .2s;white-space:nowrap}
+.btn-secondary:hover{background:var(--bg-2);border-color:var(--ink-5)}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.kpi-mini{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-xs);transition:all .22s;position:relative;overflow:hidden}
+.kpi-mini::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--clr);transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.kpi-mini:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.kpi-mini:hover::before{transform:scaleX(1)}
+.kpi-mini-icon{width:40px;height:40px;border-radius:var(--r-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--clr-s)}
+.kpi-mini-body{flex:1;min-width:0}
+.kpi-mini-label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px}
+.kpi-mini-num{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.6px;line-height:1.15;margin-top:1px}
+.kpi-mini-sub{font-size:11px;color:var(--ink-4);margin-top:2px}
+
+/* BODY LAYOUT */
+.body-layout{display:grid;grid-template-columns:230px 1fr;gap:16px;align-items:start}
+
+/* KATEGORI TREE */
+.tree-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-xs);overflow:hidden;position:sticky;top:calc(var(--topbar-h) + 16px)}
+.tree-head{padding:14px 16px;border-bottom:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between}
+.tree-head-title{font-size:13px;font-weight:700;color:var(--ink)}
+.tree-add-btn{width:26px;height:26px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .18s}
+.tree-add-btn:hover{background:var(--indigo-s);color:var(--indigo);border-color:rgba(79,70,229,.3)}
+.tree-search-wrap{padding:8px 12px;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:6px}
+.tree-search-wrap input{border:none;outline:none;background:transparent;font-family:var(--font);font-size:12.5px;color:var(--ink);width:100%}
+.tree-search-wrap input::placeholder{color:var(--ink-4)}
+.tree-body{padding:6px 0;max-height:calc(100vh - 270px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.tree-item{display:flex;align-items:center;gap:5px;padding:7px 12px;font-size:12.5px;color:var(--ink-3);cursor:pointer;transition:all .15s;border-left:2px solid transparent;user-select:none;width:100%;background:none;border-right:none;border-top:none;border-bottom:none;text-align:left}
+.tree-item:hover{background:var(--bg);color:var(--ink)}
+.tree-item.active{background:var(--indigo-s);color:var(--indigo);border-left-color:var(--indigo)}
+.tree-item.l1{padding-left:12px;font-weight:600;font-size:13px}
+.tree-item.l2{padding-left:26px;font-size:12.5px}
+.tree-item.l3{padding-left:40px;font-size:12px}
+.tree-icon{font-size:13px;flex-shrink:0}
+.tree-count{margin-left:auto;font-size:10px;font-family:var(--mono);font-weight:600;background:var(--bg-2);color:var(--ink-4);padding:1px 6px;border-radius:100px;flex-shrink:0;white-space:nowrap}
+.tree-item.active .tree-count{background:rgba(79,70,229,.15);color:var(--indigo)}
+.tree-chev{font-size:10px;color:var(--ink-4);flex-shrink:0;transition:transform .18s;display:inline-block}
+.tree-chev.open{transform:rotate(90deg)}
+
+/* PANEL */
+.panel{display:flex;flex-direction:column;gap:14px}
+
+/* BULK BAR */
+.bulk-bar{background:var(--indigo);border-radius:var(--r-sm);padding:10px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 24px rgba(79,70,229,.35)}
+.bulk-bar.hidden{display:none}
+.bulk-count{font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.bulk-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.bulk-btn{padding:6px 13px;border-radius:var(--r-xs);border:none;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.bulk-btn.light{background:rgba(255,255,255,.18);color:#fff}
+.bulk-btn.light:hover{background:rgba(255,255,255,.3)}
+.bulk-btn.danger-b{background:rgba(225,29,72,.22);color:#fff}
+.bulk-btn.danger-b:hover{background:rgba(225,29,72,.38)}
+.bulk-btn.white{background:#fff;color:var(--indigo)}
+.bulk-btn.white:hover{background:var(--bg-2)}
+
+/* FILTER BAR */
+.filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-xs)}
+.tab-pills{display:flex;gap:4px;flex-wrap:wrap}
+.tab-pill{padding:5px 13px;border-radius:100px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--ink-3);cursor:pointer;transition:all .18s;white-space:nowrap}
+.tab-pill:hover{background:var(--bg-2);color:var(--ink)}
+.tab-pill.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.pill-count{display:inline-block;background:rgba(255,255,255,.25);color:inherit;font-size:10px;padding:0 5px;border-radius:100px;margin-left:3px}
+.tab-pill:not(.active) .pill-count{background:var(--bg-2);color:var(--ink-4)}
+.filter-divider{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.filter-select{height:32px;padding:0 28px 0 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);font-family:var(--font);font-size:12.5px;color:var(--ink-2);outline:none;cursor:pointer;transition:border-color .18s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237878A0' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+.filter-select:focus{border-color:rgba(79,70,229,.4)}
+.filter-spacer{flex:1}
+.filter-search{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:var(--r-xs);padding:0 11px;height:32px;transition:all .2s;background:var(--surface)}
+.filter-search:focus-within{border-color:rgba(79,70,229,.4);box-shadow:0 0 0 3px rgba(79,70,229,.07)}
+.filter-search input{border:none;outline:none;background:transparent;font-family:var(--font);font-size:12.5px;color:var(--ink);width:155px}
+.filter-search input::placeholder{color:var(--ink-4)}
+.view-toggle{display:flex;gap:3px;border:1px solid var(--border);border-radius:var(--r-xs);padding:3px;background:var(--bg)}
+.view-btn{width:28px;height:26px;border-radius:5px;border:none;background:transparent;color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .18s}
+.view-btn.active{background:var(--surface);color:var(--indigo);box-shadow:var(--shadow-xs)}
+
+/* TABLE */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-xs);overflow:hidden}
+.table-card-head{padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border-2)}
+.table-card-title{font-size:14px;font-weight:700;color:var(--ink)}
+.table-card-sub{font-size:11.5px;color:var(--ink-4);margin-top:2px}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10.5px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.5px;padding:11px 16px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface-2)}
+th.c,td.c{text-align:center}
+td{padding:12px 16px;font-size:13px;color:var(--ink-2);border-bottom:1px solid var(--border-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.td-q{max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-size:12.5px;font-weight:500}
+.td-q-sub{font-size:11px;color:var(--ink-4);margin-top:2px;font-weight:400}
+.cb-col{width:38px}
+.cb{width:15px;height:15px;border-radius:4px;accent-color:var(--indigo);cursor:pointer}
+
+/* TYPE & DIFF BADGES */
+.type-badge{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.t-pg    {background:var(--indigo-s);color:var(--indigo)}
+.t-pgk   {background:var(--violet-s);color:var(--violet)}
+.t-essay {background:var(--teal-s);color:var(--teal)}
+.t-tf    {background:var(--sky-s);color:var(--sky)}
+.t-isian {background:var(--emerald-s);color:var(--emerald)}
+.t-jodoh {background:var(--amber-s);color:var(--amber)}
+.t-urutan{background:var(--rose-s);color:var(--rose)}
+.diff-badge{display:inline-flex;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px}
+.d-mudah {background:var(--emerald-s);color:var(--emerald)}
+.d-sedang{background:var(--amber-s);color:var(--amber)}
+.d-sulit {background:var(--rose-s);color:var(--rose)}
+
+/* ROW ACTIONS */
+.row-acts{display:flex;gap:3px;opacity:0;transition:opacity .15s}
+tr:hover .row-acts{opacity:1}
+.row-btn{width:27px;height:27px;border-radius:var(--r-xs);border:none;background:transparent;color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s}
+.row-btn:hover{background:var(--bg-2);color:var(--ink)}
+.row-btn.d:hover{background:var(--rose-s);color:var(--rose)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border-2)}
+.pg-info{font-size:12px;color:var(--ink-4)}
+.pg-info strong{color:var(--ink-2)}
+.pg-controls{display:flex;gap:3px}
+.pg-btn{width:30px;height:30px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:12.5px;transition:all .15s;font-family:var(--mono);font-weight:600}
+.pg-btn:hover{background:var(--bg-2);color:var(--ink)}
+.pg-btn.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.pg-btn:disabled{opacity:.35;pointer-events:none}
+.pg-btn.wide{width:auto;padding:0 10px}
+
+/* GRID VIEW */
+.soal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px}
+.soal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow-xs);transition:all .22s;display:flex;flex-direction:column;gap:10px}
+.soal-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--ink-5)}
+.soal-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.soal-card-badges{display:flex;gap:5px;flex-wrap:wrap}
+.soal-card-menu{display:flex;gap:2px;flex-shrink:0}
+.soal-card-body{font-size:12.5px;color:var(--ink);font-weight:500;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.soal-card-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border-2)}
+.soal-card-meta{display:flex;gap:10px}
+.soal-card-meta span{font-size:11px;color:var(--ink-4)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(24,24,31,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--r);width:100%;max-width:680px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(24px) scale(.98);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.modal-overlay.open .modal{transform:none}
+.modal-head{padding:20px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-size:16px;font-weight:700;color:var(--ink)}
+.modal-sub{font-size:12px;color:var(--ink-4);margin-top:2px}
+.modal-close{width:30px;height:30px;border-radius:var(--r-xs);border:none;background:var(--bg-2);color:var(--ink-3);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.modal-close:hover{background:var(--bg);color:var(--ink)}
+.modal-body{padding:22px 26px}
+.modal-foot{padding:14px 26px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;background:var(--surface-2)}
+
+/* FORM */
+.form-grid{display:grid;gap:16px}
+.fg-2{grid-template-columns:1fr 1fr}
+.fg-3{grid-template-columns:1fr 1fr 1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.req{color:var(--rose);margin-left:2px}
+.form-input{height:40px;padding:0 13px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);font-family:var(--font);font-size:13px;color:var(--ink);outline:none;transition:all .18s;width:100%}
+.form-input:focus{border-color:rgba(79,70,229,.5);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.form-textarea{resize:vertical;padding:10px 13px;min-height:88px;line-height:1.55}
+.form-select{height:40px;padding:0 32px 0 13px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237878A0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;font-family:var(--font);font-size:13px;color:var(--ink);outline:none;cursor:pointer;appearance:none;width:100%;transition:all .18s}
+.form-select:focus{border-color:rgba(79,70,229,.5);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.form-hint{font-size:11px;color:var(--ink-4)}
+.form-section-lbl{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;padding-bottom:8px;border-bottom:1px solid var(--border-2)}
+
+/* ANSWER OPTIONS */
+.opt-list{display:flex;flex-direction:column;gap:7px}
+.opt-row{display:flex;align-items:center;gap:7px}
+.opt-label{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--ink-3);flex-shrink:0;transition:all .18s;cursor:pointer;user-select:none}
+.opt-label.correct{background:var(--emerald);border-color:var(--emerald);color:#fff}
+.opt-input{flex:1;height:37px;padding:0 12px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);font-family:var(--font);font-size:13px;color:var(--ink);outline:none;transition:all .18s}
+.opt-input:focus{border-color:rgba(79,70,229,.4)}
+.opt-del{width:26px;height:26px;border-radius:var(--r-xs);border:none;background:transparent;color:var(--ink-4);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .15s}
+.opt-del:hover{background:var(--rose-s);color:var(--rose)}
+.add-opt-btn{display:flex;align-items:center;gap:5px;padding:7px 0;font-size:12.5px;font-weight:600;color:var(--indigo);background:none;border:none;cursor:pointer}
+.add-opt-btn:hover{opacity:.75}
+
+/* UPLOAD ZONE */
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--r-sm);padding:22px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:var(--indigo);background:var(--indigo-s)}
+.upload-icon{font-size:26px;opacity:.45}
+.upload-label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.upload-sub{font-size:11.5px;color:var(--ink-4)}
+
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:49;background:rgba(24,24,31,.45);backdrop-filter:blur(2px)}
+
+/* ANIMATIONS */
+.anim-in{animation:animIn .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes animIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.10s}.d3{animation-delay:.15s}
+.d4{animation-delay:.20s}.d5{animation-delay:.25s}.d6{animation-delay:.30s}
+
+/* RESPONSIVE */
+@media(max-width:1320px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1100px){.body-layout{grid-template-columns:1fr}.tree-card{position:static}.tree-body{max-height:200px}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}.main-wrap{margin-left:0}.topbar{left:0}.hamburger{display:flex}.topbar-date{display:none}}
+@media(max-width:768px){.main-inner{padding:20px 16px 32px}.fg-2,.fg-3{grid-template-columns:1fr}}
+@media(max-width:640px){.kpi-strip{grid-template-columns:1fr 1fr}.topbar-search{display:none}}
+@media(max-width:400px){.kpi-strip{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ════════════════════════
+     MODAL: TAMBAH SOAL
+════════════════════════ -->
+<div class="modal-overlay" id="modalSoal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">✏️ Tambah Soal Baru</div>
+        <div class="modal-sub">Isi konten, tipe soal, kunci jawaban, dan pembahasan</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalSoal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <div class="form-section-lbl">Informasi Soal</div>
+
+        <div class="form-grid fg-3">
+          <div class="form-field">
+            <label class="form-label">Tipe Soal <span class="req">*</span></label>
+            <select class="form-select" id="tipeSelect" onchange="onTipeChange(this.value)">
+              <option value="">Pilih tipe…</option>
+              <option value="pg">Pilihan Ganda</option>
+              <option value="pgk">PG Kompleks (multi)</option>
+              <option value="essay">Essay</option>
+              <option value="tf">Benar / Salah</option>
+              <option value="isian">Isian Singkat</option>
+              <option value="jodoh">Menjodohkan</option>
+              <option value="urutan">Urutan / Puzzle</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Kesukaran <span class="req">*</span></label>
+            <select class="form-select">
+              <option value="">Pilih…</option>
+              <option>Mudah</option><option>Sedang</option><option>Sulit</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Poin Default</label>
+            <input class="form-input" type="number" placeholder="5" min="1" max="100">
+          </div>
+        </div>
+
+        <div class="form-grid fg-2">
+          <div class="form-field">
+            <label class="form-label">Kategori <span class="req">*</span></label>
+            <select class="form-select">
+              <option value="">Pilih kategori…</option>
+              <option>TWK → Nasionalisme</option>
+              <option>TWK → Integritas</option>
+              <option>TWK → Bela Negara</option>
+              <option>TWK → Pancasila & UUD</option>
+              <option>TIU → Verbal</option>
+              <option>TIU → Numerik</option>
+              <option>TIU → Logis</option>
+              <option>TKP → Pelayanan Publik</option>
+              <option>TKP → Anti Korupsi</option>
+              <option>Diklat → Kompetensi IT</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Level Bloom</label>
+            <select class="form-select">
+              <option value="">Pilih level…</option>
+              <option>C1 — Mengingat</option><option>C2 — Memahami</option>
+              <option>C3 — Menerapkan</option><option>C4 — Menganalisis</option>
+              <option>C5 — Mengevaluasi</option><option>C6 — Mencipta</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-lbl" style="margin-top:2px">Konten Soal</div>
+
+        <div class="form-field">
+          <label class="form-label">Pertanyaan <span class="req">*</span></label>
+          <textarea class="form-input form-textarea" placeholder="Tulis pertanyaan di sini. Mendukung teks biasa; format akan ditampilkan dengan benar saat ujian berlangsung." style="min-height:86px"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Media (opsional)</label>
+          <div class="upload-zone" onclick="alert('Upload media')">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-label">Klik untuk upload gambar atau audio</div>
+            <div class="upload-sub">PNG, JPG, MP3, WAV — maks. 5 MB per file</div>
+          </div>
+        </div>
+
+        <!-- Dynamic answer block -->
+        <div id="answerBlock" style="display:none">
+          <div class="form-section-lbl" style="margin-bottom:12px" id="answerLbl">Opsi Jawaban</div>
+          <div class="opt-list" id="optList"></div>
+          <button class="add-opt-btn" id="addOptBtn" onclick="addOpt()" style="margin-top:8px">＋ Tambah Opsi</button>
+        </div>
+
+        <div class="form-section-lbl" style="margin-top:2px">Pembahasan (opsional)</div>
+        <div class="form-field">
+          <label class="form-label">Penjelasan Jawaban</label>
+          <textarea class="form-input form-textarea" placeholder="Tulis pembahasan atau alasan jawaban yang benar. Ditampilkan ke peserta setelah ujian selesai jika diizinkan oleh Admin."></textarea>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalSoal')">Batal</button>
+      <button class="btn-secondary" onclick="alert('Simpan draft')">💾 Simpan Draft</button>
+      <button class="btn-primary">✓ Simpan & Publikasikan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════
+     MODAL: IMPORT
+════════════════════════ -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📥 Import Soal dari Excel</div>
+        <div class="modal-sub">Upload file .xlsx sesuai template untuk import massal</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalImport')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Kategori Tujuan <span class="req">*</span></label>
+          <select class="form-select">
+            <option>Pilih kategori…</option>
+            <option>TWK → Nasionalisme</option>
+            <option>TIU → Verbal</option>
+            <option>TKP → Anti Korupsi</option>
+          </select>
+        </div>
+        <div class="upload-zone" onclick="alert('Pilih file Excel')" style="padding:34px 24px">
+          <div class="upload-icon">📊</div>
+          <div class="upload-label">Drag & drop atau klik untuk pilih file</div>
+          <div class="upload-sub">Hanya format .xlsx — maks. 10 MB</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">💡</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:4px">Format Kolom Wajib</div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.65">Tipe · Konten · Opsi_A s/d Opsi_E · Kunci · Kesukaran · Poin<br>Kolom opsional: Pembahasan · Tag · Level_Bloom</div>
+            <button onclick="alert('Download template')" style="margin-top:9px;font-size:12px;font-weight:600;color:var(--indigo);background:none;border:none;cursor:pointer;padding:0">📎 Download Template Excel →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalImport')">Batal</button>
+      <button class="btn-primary">📥 Import Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════
+     MODAL: PREVIEW SOAL
+════════════════════════ -->
+<div class="modal-overlay" id="modalPreview">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="previewTitle">Preview Soal</div>
+        <div class="modal-sub" id="previewMeta">TWK → Nasionalisme · Mudah · 5 poin</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalPreview')">✕</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modalPreview')">Tutup</button>
+      <button class="btn-primary" onclick="closeModal('modalPreview');openModal('modalSoal')">✏️ Edit Soal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════
+     SIDEBAR
+════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">
+      <div class="brand-icon">C</div>
+      <div class="brand-name">CAT<span>System</span></div>
+    </div>
+  </div>
+  <div class="sidebar-body">
+    <div class="nav-section">
+      <div class="nav-section-title">Utama</div>
+      <button class="nav-item"><div class="nav-icon">🏠</div>Dashboard</button>
+      <button class="nav-item"><div class="nav-icon">📋</div>Manajemen Ujian<span class="nav-badge teal">3</span></button>
+      <button class="nav-item active"><div class="nav-icon">🏦</div>Bank Soal</button>
+      <button class="nav-item"><div class="nav-icon">👥</div>Peserta<span class="nav-badge amber">12</span></button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Analitik</div>
+      <button class="nav-item"><div class="nav-icon">📊</div>Laporan & Hasil</button>
+      <button class="nav-item"><div class="nav-icon">🏆</div>Ranking & Nilai</button>
+      <button class="nav-item"><div class="nav-icon">🎯</div>Analitik Soal</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Sistem</div>
+      <button class="nav-item"><div class="nav-icon">🏢</div>Institusi</button>
+      <button class="nav-item"><div class="nav-icon">🛡️</div>Akses & Role</button>
+      <button class="nav-item"><div class="nav-icon">⚙️</div>Pengaturan</button>
+    </div>
+  </div>
+  <div class="sidebar-foot">
+    <div class="user-card">
+      <div class="user-ava">SA</div>
+      <div class="user-info">
+        <div class="user-name">Budi Kurniawan</div>
+        <div class="user-role">BKPSDM Kota Pekalongan</div>
+      </div>
+      <div class="user-more">⋯</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════════
+     TOPBAR
+════════════════════════ -->
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="topbar-title">Bank Soal <span>— kelola semua pertanyaan</span></div>
+  <div class="topbar-search">
+    <span class="topbar-search-icon">🔍</span>
+    <input type="text" placeholder="Cari isi soal...">
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+    <button class="icon-btn">❓</button>
+  </div>
+  <span class="topbar-date" id="topbarDate"></span>
+</header>
+
+<!-- ════════════════════════
+     MAIN
+════════════════════════ -->
+<div class="main-wrap">
+  <div class="main-inner">
+
+    <!-- Page Header -->
+    <div class="page-header anim-in d1">
+      <div class="page-header-text">
+        <h1>Bank <em>Soal</em> 🏦</h1>
+        <p>Kelola, kategorikan, dan analisis seluruh koleksi soal ujian.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" onclick="openModal('modalImport')">📥 Import Excel</button>
+        <button class="btn-secondary" onclick="alert('Export bank soal ke Excel')">📤 Export</button>
+        <button class="btn-primary" onclick="openModal('modalSoal')"><span>＋</span> Tambah Soal</button>
+      </div>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="kpi-strip anim-in d2">
+      <div class="kpi-mini" style="--clr:var(--indigo);--clr-s:var(--indigo-s)">
+        <div class="kpi-mini-icon">📝</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Total Soal Aktif</div>
+          <div class="kpi-mini-num">12.480</div>
+          <div class="kpi-mini-sub">Siap digunakan</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--teal);--clr-s:var(--teal-s)">
+        <div class="kpi-mini-icon">📂</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Kategori</div>
+          <div class="kpi-mini-num">9</div>
+          <div class="kpi-mini-sub">3 level hirarki</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--violet);--clr-s:var(--violet-s)">
+        <div class="kpi-mini-icon">🎯</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Tipe Soal</div>
+          <div class="kpi-mini-num">7</div>
+          <div class="kpi-mini-sub">PG, Essay, Puzzle…</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--amber);--clr-s:var(--amber-s)">
+        <div class="kpi-mini-icon">✏️</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Draft</div>
+          <div class="kpi-mini-num">240</div>
+          <div class="kpi-mini-sub">Belum dipublikasi</div>
+        </div>
+      </div>
+      <div class="kpi-mini" style="--clr:var(--emerald);--clr-s:var(--emerald-s)">
+        <div class="kpi-mini-icon">📈</div>
+        <div class="kpi-mini-body">
+          <div class="kpi-mini-label">Bulan Ini</div>
+          <div class="kpi-mini-num">+384</div>
+          <div class="kpi-mini-sub">↑ 22% vs bulan lalu</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body layout: tree + panel -->
+    <div class="body-layout anim-in d3">
+
+      <!-- Kategori Tree -->
+      <div class="tree-card">
+        <div class="tree-head">
+          <span class="tree-head-title">📂 Kategori</span>
+          <button class="tree-add-btn" title="Tambah kategori" onclick="alert('Tambah kategori baru')">＋</button>
+        </div>
+        <div class="tree-search-wrap">
+          <span style="font-size:12px;color:var(--ink-4)">🔍</span>
+          <input type="text" placeholder="Cari kategori...">
+        </div>
+        <div class="tree-body" id="treeBody"></div>
+      </div>
+
+      <!-- Panel kanan -->
+      <div class="panel">
+
+        <!-- Bulk bar -->
+        <div class="bulk-bar hidden" id="bulkBar">
+          <span class="bulk-count" id="bulkCount">0 soal dipilih</span>
+          <div class="bulk-actions">
+            <button class="bulk-btn light" onclick="alert('Pindah kategori')">📂 Pindah</button>
+            <button class="bulk-btn light" onclick="alert('Export pilihan')">📤 Export</button>
+            <button class="bulk-btn light" onclick="alert('Ubah status')">🔄 Status</button>
+            <button class="bulk-btn danger-b" onclick="alert('Hapus pilihan')">🗑 Hapus</button>
+            <button class="bulk-btn white" onclick="clearSel()">✕ Batal</button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="tab-pills" id="typeTabs">
+            <button class="tab-pill active" onclick="setTab(this,'typeTabs')">Semua<span class="pill-count">12.480</span></button>
+            <button class="tab-pill" onclick="setTab(this,'typeTabs')">PG<span class="pill-count">7.200</span></button>
+            <button class="tab-pill" onclick="setTab(this,'typeTabs')">Essay<span class="pill-count">1.840</span></button>
+            <button class="tab-pill" onclick="setTab(this,'typeTabs')">Lainnya<span class="pill-count">3.440</span></button>
+          </div>
+          <div class="filter-divider"></div>
+          <select class="filter-select">
+            <option>Semua level</option>
+            <option>Mudah</option><option>Sedang</option><option>Sulit</option>
+          </select>
+          <select class="filter-select">
+            <option>Terbaru dulu</option>
+            <option>Nama A–Z</option>
+            <option>Paling banyak dipakai</option>
+            <option>Sulit dulu</option>
+          </select>
+          <div class="filter-spacer"></div>
+          <div class="filter-search">
+            <span style="color:var(--ink-4);font-size:12px">🔍</span>
+            <input type="text" placeholder="Cari isi soal...">
+          </div>
+          <div class="view-toggle">
+            <button class="view-btn active" id="btnList" onclick="setView('list')" title="Tabel">☰</button>
+            <button class="view-btn" id="btnGrid" onclick="setView('grid')" title="Kartu">⊞</button>
+          </div>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div class="table-card" id="viewList">
+          <div class="table-card-head">
+            <div>
+              <div class="table-card-title" id="panelTitle">Semua Soal</div>
+              <div class="table-card-sub" id="panelSub">Menampilkan 1–15 dari 12.480 soal</div>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th class="cb-col"><input type="checkbox" class="cb" id="checkAll" onchange="toggleAll(this)"></th>
+                  <th>Konten Soal</th>
+                  <th>Tipe</th>
+                  <th>Kesukaran</th>
+                  <th class="c">Poin</th>
+                  <th class="c">Dipakai</th>
+                  <th>Status</th>
+                  <th>Tanggal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="soalBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pg-info">Menampilkan <strong>1–15</strong> dari <strong>12.480</strong> soal</div>
+            <div class="pg-controls">
+              <button class="pg-btn" disabled>‹</button>
+              <button class="pg-btn active">1</button>
+              <button class="pg-btn">2</button>
+              <button class="pg-btn">3</button>
+              <button class="pg-btn wide">…</button>
+              <button class="pg-btn">832</button>
+              <button class="pg-btn">›</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRID VIEW -->
+        <div class="soal-grid" id="viewGrid" style="display:none"></div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════ DATA ═══════ */
+const typeMap  = {pg:'PG Tunggal',pgk:'PG Kompleks',essay:'Essay',tf:'Benar/Salah',isian:'Isian Singkat',jodoh:'Menjodohkan',urutan:'Urutan'};
+const typeCls  = {pg:'t-pg',pgk:'t-pgk',essay:'t-essay',tf:'t-tf',isian:'t-isian',jodoh:'t-jodoh',urutan:'t-urutan'};
+const diffCls  = {Mudah:'d-mudah',Sedang:'d-sedang',Sulit:'d-sulit'};
+
+const soalData = [
+  {id:1,q:'Pancasila sebagai dasar negara memiliki fungsi pokok dalam kehidupan berbangsa dan bernegara. Apa yang dimaksud dengan fungsi Pancasila sebagai dasar negara?',kat:'TWK → Pancasila & UUD',tipe:'pg',diff:'Mudah',poin:5,pakai:28,tgl:'12 Jun 2025',aktif:true,opts:['Landasan idiil negara','Pedoman moral bangsa','Sumber dari segala sumber hukum','Perekat persatuan bangsa','Simbol identitas nasional'],benar:2},
+  {id:2,q:'Seorang pegawai menemukan rekan kerjanya melakukan pungutan liar kepada masyarakat. Tindakan yang paling tepat sesuai nilai integritas ASN adalah…',kat:'TKP → Anti Korupsi',tipe:'pg',diff:'Sedang',poin:5,pakai:41,tgl:'11 Jun 2025',aktif:true,opts:['Diam saja agar tidak terlibat','Melaporkan ke atasan atau Inspektorat','Mengingatkan secara langsung di depan umum','Ikut serta agar tidak dikucilkan','Membahas bersama rekan lain'],benar:1},
+  {id:3,q:'Jika A lebih tinggi dari B, dan C lebih rendah dari B tetapi lebih tinggi dari D. Manakah urutan yang benar dari yang paling rendah ke tertinggi?',kat:'TIU → Kemampuan Logis',tipe:'pg',diff:'Sulit',poin:5,pakai:33,tgl:'10 Jun 2025',aktif:true,opts:['D, C, B, A','C, D, B, A','A, B, C, D','D, B, C, A'],benar:0},
+  {id:4,q:'Jelaskan pengertian Bhinneka Tunggal Ika dan bagaimana penerapannya dalam kehidupan bermasyarakat di era digital saat ini.',kat:'TWK → Bhinneka Tunggal Ika',tipe:'essay',diff:'Sedang',poin:20,pakai:12,tgl:'10 Jun 2025',aktif:true},
+  {id:5,q:'Pernyataan: "Setiap warga negara wajib menjunjung hukum dan pemerintahan tanpa terkecuali." Pernyataan ini sesuai dengan UUD 1945 Pasal 27 Ayat 1.',kat:'TWK → Nasionalisme',tipe:'tf',diff:'Mudah',poin:3,pakai:19,tgl:'9 Jun 2025',aktif:true},
+  {id:6,q:'Berapakah hasil dari: 15% dari 840 ditambah 20% dari 650?',kat:'TIU → Kemampuan Numerik',tipe:'pg',diff:'Sedang',poin:5,pakai:55,tgl:'8 Jun 2025',aktif:true,opts:['246','256','266','276'],benar:0},
+  {id:7,q:'Pasangkan setiap lembaga negara dengan fungsinya yang paling tepat: DPR, MPR, MA, MK, KY.',kat:'TWK → Pancasila & UUD',tipe:'jodoh',diff:'Sedang',poin:10,pakai:9,tgl:'7 Jun 2025',aktif:true},
+  {id:8,q:'Susunlah langkah-langkah berikut sesuai dengan prosedur pengaduan pelayanan publik yang benar berdasarkan UU No. 25 Tahun 2009.',kat:'TKP → Pelayanan Publik',tipe:'urutan',diff:'Mudah',poin:8,pakai:7,tgl:'7 Jun 2025',aktif:false},
+  {id:9,q:'Pilih SEMUA yang merupakan asas-asas umum pemerintahan yang baik (AUPB) berdasarkan UU No. 30 Tahun 2014 tentang Administrasi Pemerintahan.',kat:'TWK → Integritas',tipe:'pgk',diff:'Sulit',poin:10,pakai:16,tgl:'6 Jun 2025',aktif:true,opts:['Kepastian hukum','Kemanfaatan','Ketidakberpihakan','Kecermatan','Paksaan administratif'],benar:[0,1,2,3]},
+  {id:10,q:'Istilah "____" merujuk pada kemampuan seseorang dalam mengelola tugas dan tanggung jawab kerja secara efisien dan profesional.',kat:'TKP → Profesionalisme',tipe:'isian',diff:'Mudah',poin:3,pakai:22,tgl:'5 Jun 2025',aktif:true},
+  {id:11,q:'Manakah di bawah ini yang BUKAN merupakan nilai-nilai dasar Bela Negara menurut UU No. 23 Tahun 2019 tentang Pengelolaan Sumber Daya Nasional?',kat:'TWK → Bela Negara',tipe:'pg',diff:'Sulit',poin:5,pakai:31,tgl:'5 Jun 2025',aktif:true,opts:['Cinta tanah air','Sadar berbangsa dan bernegara','Setia Pancasila','Kewirausahaan sosial','Rela berkorban'],benar:3},
+  {id:12,q:'Deret angka: 3, 7, 13, 21, 31, … Angka selanjutnya adalah?',kat:'TIU → Kemampuan Numerik',tipe:'pg',diff:'Sedang',poin:5,pakai:48,tgl:'4 Jun 2025',aktif:true,opts:['41','43','45','47'],benar:1},
+  {id:13,q:'Persamaan kata (sinonim) dari kata "INSTRUKTIF" yang paling tepat adalah…',kat:'TIU → Kemampuan Verbal',tipe:'pg',diff:'Mudah',poin:5,pakai:39,tgl:'3 Jun 2025',aktif:true,opts:['Bersifat petunjuk','Bersifat memaksa','Bersifat persuasif','Bersifat informatif'],benar:0},
+  {id:14,q:'Identifikasi minimal 3 tantangan utama birokrasi Indonesia dalam era transformasi digital dan jelaskan strategi konkret mengatasinya.',kat:'Diklat → Manajemen ASN',tipe:'essay',diff:'Sulit',poin:25,pakai:5,tgl:'2 Jun 2025',aktif:true},
+  {id:15,q:'Dalam konteks pelayanan publik, sistem "one stop service" bertujuan untuk meningkatkan efisiensi dan efektivitas layanan kepada masyarakat.',kat:'TKP → Pelayanan Publik',tipe:'tf',diff:'Mudah',poin:3,pakai:27,tgl:'1 Jun 2025',aktif:true},
+];
+
+/* ═══════ KATEGORI TREE ═══════ */
+const cats = [
+  {id:'all',  label:'Semua Soal',          icon:'📝',n:12480,l:1},
+  {id:'twk',  label:'TWK',                 icon:'🏛️',n:3600, l:1, ch:[
+    {id:'twk-nas',  label:'Nasionalisme',       icon:'🇮🇩',n:820},
+    {id:'twk-int',  label:'Integritas',         icon:'⚖️', n:640},
+    {id:'twk-bela', label:'Bela Negara',        icon:'🎖️',n:510},
+    {id:'twk-pan',  label:'Pancasila & UUD',    icon:'📜',n:980},
+    {id:'twk-bhi',  label:'Bhinneka Tunggal Ika',icon:'🕊️',n:650},
+  ]},
+  {id:'tiu',  label:'TIU',                 icon:'🧠',n:4200, l:1, ch:[
+    {id:'tiu-v', label:'Kemampuan Verbal',   icon:'💬',n:1200},
+    {id:'tiu-n', label:'Kemampuan Numerik',  icon:'🔢',n:1100},
+    {id:'tiu-l', label:'Kemampuan Logis',    icon:'🔗',n:980},
+    {id:'tiu-s', label:'Kemampuan Spasial',  icon:'📐',n:920},
+  ]},
+  {id:'tkp',  label:'TKP',                 icon:'🤝',n:3200, l:1, ch:[
+    {id:'tkp-sos',  label:'Sosial Budaya',      icon:'🌐',n:780},
+    {id:'tkp-pel',  label:'Pelayanan Publik',   icon:'🏢',n:860},
+    {id:'tkp-pro',  label:'Profesionalisme',    icon:'💼',n:740},
+    {id:'tkp-anti', label:'Anti Korupsi',       icon:'🛡️',n:820},
+  ]},
+  {id:'dik',  label:'Diklat & Kompetensi', icon:'📚',n:1480, l:1, ch:[
+    {id:'dik-it',  label:'Kompetensi IT',     icon:'💻',n:560},
+    {id:'dik-mn',  label:'Manajemen ASN',     icon:'📋',n:480},
+    {id:'dik-oth', label:'Lainnya',           icon:'📄',n:440},
+  ]},
+];
+
+const expanded = {twk:true, tiu:false, tkp:false, dik:false};
+
+function renderTree() {
+  let h = '';
+  cats.forEach(c => {
+    if (c.l === 1 && c.ch) {
+      const isExp = expanded[c.id];
+      h += `<button class="tree-item l1" onclick="toggleTree('${c.id}',event)">
+        <span class="tree-chev ${isExp?'open':''}" id="chev-${c.id}">›</span>
+        <span class="tree-icon">${c.icon}</span><span style="flex:1;text-align:left">${c.label}</span>
+        <span class="tree-count">${c.n.toLocaleString()}</span></button>`;
+      h += `<div id="sub-${c.id}" style="display:${isExp?'':'none'}">`;
+      c.ch.forEach(ch => {
+        h += `<button class="tree-item l2" onclick="selectTree(this,'${c.label} → ${ch.label}','${ch.n} soal')">
+          <span class="tree-icon">${ch.icon}</span><span style="flex:1;text-align:left">${ch.label}</span>
+          <span class="tree-count">${ch.n}</span></button>`;
+      });
+      h += `</div>`;
+    } else if (!c.ch) {
+      h += `<button class="tree-item l1 ${c.id==='all'?'active':''}" onclick="selectTree(this,'Semua Soal','12.480 soal')">
+        <span style="width:12px"></span><span class="tree-icon">${c.icon}</span>
+        <span style="flex:1;text-align:left">${c.label}</span>
+        <span class="tree-count">${c.n.toLocaleString()}</span></button>`;
+    }
+  });
+  document.getElementById('treeBody').innerHTML = h;
+}
+
+function toggleTree(id, e) {
+  e.stopPropagation();
+  expanded[id] = !expanded[id];
+  document.getElementById('sub-'+id).style.display = expanded[id] ? '' : 'none';
+  const chev = document.getElementById('chev-'+id);
+  chev.classList.toggle('open', expanded[id]);
+}
+
+function selectTree(el, title, sub) {
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panelTitle').textContent = title;
+  document.getElementById('panelSub').textContent = 'Menampilkan 1–15 dari ' + sub;
+}
+
+/* ═══════ TABLE ═══════ */
+function statusBadge(aktif) {
+  return aktif
+    ? `<span style="font-size:10.5px;font-weight:700;color:var(--teal);background:var(--teal-s);padding:2px 8px;border-radius:100px">Aktif</span>`
+    : `<span style="font-size:10.5px;font-weight:700;color:var(--amber);background:var(--amber-s);padding:2px 8px;border-radius:100px">Draft</span>`;
+}
+
+function renderTable() {
+  document.getElementById('soalBody').innerHTML = soalData.map(s => `
+    <tr>
+      <td class="cb-col"><input type="checkbox" class="cb row-cb" onchange="onRowCb()"></td>
+      <td style="max-width:340px">
+        <div class="td-q">${s.q}</div>
+        <div class="td-q-sub">${s.kat}</div>
+      </td>
+      <td><span class="type-badge ${typeCls[s.tipe]}">${typeMap[s.tipe]}</span></td>
+      <td><span class="diff-badge ${diffCls[s.diff]}">${s.diff}</span></td>
+      <td class="c" style="font-family:var(--mono);font-weight:700;color:var(--ink)">${s.poin}</td>
+      <td class="c" style="font-family:var(--mono);font-size:12px;color:var(--ink-3)">${s.pakai}×</td>
+      <td>${statusBadge(s.aktif)}</td>
+      <td style="font-family:var(--mono);font-size:11.5px;color:var(--ink-4)">${s.tgl}</td>
+      <td>
+        <div class="row-acts">
+          <button class="row-btn" title="Preview" onclick="previewSoal(${s.id})">👁</button>
+          <button class="row-btn" title="Edit" onclick="openModal('modalSoal')">✏️</button>
+          <button class="row-btn" title="Duplikat" onclick="alert('Duplikat soal #${s.id}')">📄</button>
+          <button class="row-btn d" title="Hapus" onclick="alert('Hapus soal #${s.id}?')">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+/* ═══════ GRID ═══════ */
+function renderGrid() {
+  document.getElementById('viewGrid').innerHTML = soalData.map(s => `
+    <div class="soal-card">
+      <div class="soal-card-top">
+        <div class="soal-card-badges">
+          <span class="type-badge ${typeCls[s.tipe]}">${typeMap[s.tipe]}</span>
+          <span class="diff-badge ${diffCls[s.diff]}">${s.diff}</span>
+          ${!s.aktif?`<span class="diff-badge" style="background:var(--amber-s);color:var(--amber)">Draft</span>`:''}
+        </div>
+        <div class="soal-card-menu">
+          <button class="row-btn" onclick="previewSoal(${s.id})" title="Preview">👁</button>
+          <button class="row-btn" onclick="openModal('modalSoal')" title="Edit">✏️</button>
+          <button class="row-btn d" onclick="alert('Hapus?')" title="Hapus">🗑</button>
+        </div>
+      </div>
+      <div class="soal-card-body">${s.q}</div>
+      <div class="soal-card-foot">
+        <div class="soal-card-meta">
+          <span>🎯 ${s.poin} poin</span>
+          <span>📋 ${s.pakai}× dipakai</span>
+        </div>
+        <span style="font-size:11px;color:var(--ink-4);font-family:var(--mono)">${s.tgl}</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════ PREVIEW SOAL ═══════ */
+function previewSoal(id) {
+  const s = soalData.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('previewTitle').textContent = `Preview — ${typeMap[s.tipe]}`;
+  document.getElementById('previewMeta').textContent = `${s.kat}  ·  ${s.diff}  ·  ${s.poin} poin`;
+
+  let body = `<div style="font-size:14px;font-weight:600;color:var(--ink);line-height:1.6;margin-bottom:16px">${s.q}</div>`;
+
+  if (s.tipe === 'pg' || s.tipe === 'pgk') {
+    const labels = ['A','B','C','D','E'];
+    body += `<div style="display:flex;flex-direction:column;gap:8px">`;
+    (s.opts||[]).forEach((o,i) => {
+      const isCorr = s.tipe==='pgk' ? (Array.isArray(s.benar)&&s.benar.includes(i)) : s.benar===i;
+      body += `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);border:1.5px solid ${isCorr?'var(--emerald)':'var(--border)'};background:${isCorr?'var(--emerald-s)':'var(--surface)'}">
+        <span style="width:26px;height:26px;border-radius:50%;border:1.5px solid ${isCorr?'var(--emerald)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${isCorr?'var(--emerald)':'var(--ink-3)'};flex-shrink:0">${labels[i]}</span>
+        <span style="font-size:13px;color:var(--ink);flex:1">${o}</span>
+        ${isCorr?`<span style="font-size:18px">✓</span>`:''}
+      </div>`;
+    });
+    body += `</div>`;
+  } else if (s.tipe === 'tf') {
+    ['Benar ✓','Salah ✗'].forEach((o,i) => {
+      body += `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);border:1.5px solid ${i===0?'var(--emerald)':'var(--border)'};background:${i===0?'var(--emerald-s)':'var(--surface)'};margin-bottom:8px">
+        <span style="font-size:13px;font-weight:600;color:${i===0?'var(--emerald)':'var(--ink-3)'}">${o}</span>
+      </div>`;
+    });
+  } else if (s.tipe === 'essay') {
+    body += `<div style="border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;background:var(--bg);color:var(--ink-4);font-size:13px;font-style:italic">Peserta akan menulis jawaban essay di sini. Penilaian dilakukan secara manual atau via AI.</div>`;
+  } else if (s.tipe === 'isian') {
+    body += `<div style="border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;background:var(--surface);color:var(--ink-4);font-size:13px">Peserta mengisi jawaban singkat…</div>`;
+  } else {
+    body += `<div style="background:var(--bg);border-radius:var(--r-sm);padding:14px;color:var(--ink-3);font-size:13px">Tipe soal <strong>${typeMap[s.tipe]}</strong> — tampilan interaktif saat ujian berlangsung.</div>`;
+  }
+
+  document.getElementById('previewBody').innerHTML = body;
+  openModal('modalPreview');
+}
+
+/* ═══════ DYNAMIC OPTIONS (modal tambah soal) ═══════ */
+let corrIdx = 0, optN = 4;
+const optLabels = ['A','B','C','D','E'];
+
+function onTipeChange(v) { corrIdx = 0; optN = 4; buildOpts(v); }
+function buildOpts(v) {
+  const block = document.getElementById('answerBlock');
+  const lbl = document.getElementById('answerLbl');
+  const list = document.getElementById('optList');
+  const addBtn = document.getElementById('addOptBtn');
+
+  if (!v || v === 'essay') { block.style.display = 'none'; return; }
+  block.style.display = '';
+
+  if (v === 'tf') {
+    lbl.textContent = 'Pilih Jawaban Benar';
+    addBtn.style.display = 'none';
+    list.innerHTML = ['Benar','Salah'].map((o,i) => `
+      <div class="opt-row">
+        <div class="opt-label ${i===corrIdx?'correct':''}" onclick="setCorr(${i},event)">${o[0]}</div>
+        <input class="opt-input" value="${o}" readonly style="background:var(--bg);color:var(--ink-3)">
+      </div>`).join('');
+    return;
+  }
+
+  if (v === 'isian') {
+    lbl.textContent = 'Kunci Jawaban';
+    addBtn.style.display = 'none';
+    list.innerHTML = `<div class="form-field"><label class="form-label">Jawaban yang diterima <span style="color:var(--ink-4);font-weight:400">(pisahkan koma)</span></label>
+      <input class="form-input" type="text" placeholder="contoh: ASN, Aparatur Sipil Negara, aparatur sipil negara"></div>`;
+    return;
+  }
+
+  if (v === 'jodoh') {
+    lbl.textContent = 'Pasangan Jawaban';
+    addBtn.style.display = 'flex';
+    addBtn.onclick = addJodoh;
+    list.innerHTML = ['DPR → Pembuat UU','MPR → Amandemen UUD','MA → Peradilan Umum','MK → Uji Materi UU'].map((o,i) => {
+      const [l,r] = o.split(' → ');
+      return `<div class="opt-row">
+        <span style="font-size:11px;font-weight:700;color:var(--ink-4);width:18px;text-align:center;flex-shrink:0">${i+1}</span>
+        <input class="opt-input" type="text" placeholder="Item kiri" value="${l}" style="flex:1">
+        <span style="font-size:14px;color:var(--ink-4)">↔</span>
+        <input class="opt-input" type="text" placeholder="Pasangan kanan" value="${r}" style="flex:1">
+        <button class="opt-del" onclick="this.closest('.opt-row').remove()">✕</button>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  if (v === 'urutan') {
+    lbl.textContent = 'Urutan yang Benar (dari atas ke bawah)';
+    addBtn.style.display = 'flex';
+    addBtn.onclick = addUrutan;
+    list.innerHTML = ['Langkah pertama','Langkah kedua','Langkah ketiga','Langkah keempat'].map((o,i) => `
+      <div class="opt-row">
+        <span style="font-size:16px;color:var(--ink-5);cursor:grab;flex-shrink:0">⠿</span>
+        <span style="font-size:11px;font-weight:700;background:var(--bg-2);color:var(--ink-3);padding:2px 8px;border-radius:4px;flex-shrink:0">${i+1}</span>
+        <input class="opt-input" type="text" placeholder="${o}">
+        <button class="opt-del" onclick="this.closest('.opt-row').remove()">✕</button>
+      </div>`).join('');
+    return;
+  }
+
+  // PG & PGK
+  lbl.textContent = v === 'pgk' ? 'Opsi Jawaban (boleh lebih dari satu benar)' : 'Opsi Jawaban (klik label untuk set kunci)';
+  addBtn.style.display = optN < 5 ? 'flex' : 'none';
+  addBtn.onclick = addOpt;
+  list.innerHTML = Array.from({length:optN}, (_,i) => `
+    <div class="opt-row" id="optRow-${i}">
+      <div class="opt-label ${i===corrIdx&&v==='pg'?'correct':''}" id="optLbl-${i}"
+        onclick="${v==='pgk'?`toggleMulti(${i})`:`setCorr(${i},event)`}"
+        title="${v==='pg'?'Klik = jawaban benar':'Klik = toggle benar'}">${optLabels[i]}</div>
+      <input class="opt-input" type="text" placeholder="Teks opsi ${optLabels[i]}...">
+      ${i>1?`<button class="opt-del" onclick="delOpt(${i})">✕</button>`:'<span style="width:26px"></span>'}
+    </div>`).join('');
+}
+
+function setCorr(i,e) { corrIdx = i; buildOpts(document.getElementById('tipeSelect').value); }
+function toggleMulti(i) { document.getElementById('optLbl-'+i).classList.toggle('correct'); }
+function addOpt() { if(optN>=5)return; optN++; buildOpts(document.getElementById('tipeSelect').value); }
+function delOpt(i) { optN=Math.max(2,optN-1); if(corrIdx>=optN)corrIdx=0; buildOpts(document.getElementById('tipeSelect').value); }
+
+function addJodoh() {
+  const rows = document.getElementById('optList').querySelectorAll('.opt-row');
+  const n = rows.length + 1;
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--ink-4);width:18px;text-align:center;flex-shrink:0">${n}</span>
+    <input class="opt-input" type="text" placeholder="Item kiri" style="flex:1">
+    <span style="font-size:14px;color:var(--ink-4)">↔</span>
+    <input class="opt-input" type="text" placeholder="Pasangan kanan" style="flex:1">
+    <button class="opt-del" onclick="this.closest('.opt-row').remove()">✕</button>`;
+  document.getElementById('optList').appendChild(row);
+}
+function addUrutan() {
+  const n = document.getElementById('optList').querySelectorAll('.opt-row').length + 1;
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.innerHTML = `<span style="font-size:16px;color:var(--ink-5);cursor:grab;flex-shrink:0">⠿</span>
+    <span style="font-size:11px;font-weight:700;background:var(--bg-2);color:var(--ink-3);padding:2px 8px;border-radius:4px;flex-shrink:0">${n}</span>
+    <input class="opt-input" type="text" placeholder="Langkah ke-${n}">
+    <button class="opt-del" onclick="this.closest('.opt-row').remove()">✕</button>`;
+  document.getElementById('optList').appendChild(row);
+}
+
+/* ═══════ BULK SELECTION ═══════ */
+function onRowCb() {
+  const sel = document.querySelectorAll('.row-cb:checked').length;
+  const all = document.querySelectorAll('.row-cb').length;
+  const bar = document.getElementById('bulkBar');
+  bar.classList.toggle('hidden', sel === 0);
+  document.getElementById('bulkCount').textContent = sel + ' soal dipilih';
+  const ca = document.getElementById('checkAll');
+  ca.indeterminate = sel > 0 && sel < all;
+  ca.checked = sel === all;
+}
+function toggleAll(cb) {
+  document.querySelectorAll('.row-cb').forEach(c => c.checked = cb.checked);
+  onRowCb();
+}
+function clearSel() {
+  document.querySelectorAll('.row-cb').forEach(c => c.checked = false);
+  document.getElementById('checkAll').checked = false;
+  onRowCb();
+}
+
+/* ═══════ VIEW TOGGLE ═══════ */
+function setView(v) {
+  document.getElementById('viewList').style.display = v==='list' ? '' : 'none';
+  document.getElementById('viewGrid').style.display  = v==='grid' ? 'grid' : 'none';
+  document.getElementById('btnList').classList.toggle('active', v==='list');
+  document.getElementById('btnGrid').classList.toggle('active', v==='grid');
+}
+
+/* ═══════ FILTER TAB ═══════ */
+function setTab(el, gid) {
+  document.getElementById(gid).querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ═══════ MODAL ═══════ */
+function openModal(id)  { document.getElementById(id).classList.add('open');    document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));
+});
+
+/* ═══════ SIDEBAR ═══════ */
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')}
+function closeSidebar() {document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open')}
+
+/* ═══════ TOPBAR DATE ═══════ */
+(function(){
+  const el=document.getElementById('topbarDate');
+  const D=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const M=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const n=new Date();
+  el.textContent=`${D[n.getDay()]}, ${n.getDate()} ${M[n.getMonth()]} ${n.getFullYear()}`;
+})();
+
+/* ═══════ PARTICLE ═══════ */
+(function(){
+  const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+  resize();addEventListener('resize',resize);
+  function P(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.r=Math.random()*1.5+.5;this.a=Math.random()*.22+.04}
+  P.prototype.update=function(){this.x+=this.vx;this.y+=this.vy;if(this.x<0)this.x=W;if(this.x>W)this.x=0;if(this.y<0)this.y=H;if(this.y>H)this.y=0};
+  P.prototype.draw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(79,70,229,${this.a})`;ctx.fill()};
+  for(let i=0;i<55;i++)pts.push(new P());
+  function drawL(){for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(79,70,229,${.055*(1-d/115)})`;ctx.lineWidth=1;ctx.stroke()}}}
+  function loop(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.update();p.draw()});drawL();requestAnimationFrame(loop)}
+  loop();
+})();
+
+/* ═══════ INIT ═══════ */
+renderTree();
+renderTable();
+renderGrid();
+</script>
+</body>
+</html>

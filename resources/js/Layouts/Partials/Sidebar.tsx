@@ -61,10 +61,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             Manajemen Ujian
                             <span className="nav-badge teal">3</span>
                         </button>
-                        <button className="nav-item" onClick={handleItemClick}>
+                        <Link
+                            href={route('bank-soal.index')}
+                            onClick={handleItemClick}
+                            className={`nav-item ${currentRoute.startsWith('bank-soal') ? 'active' : ''}`}
+                        >
                             <div className="nav-icon">🏦</div>
                             Bank Soal
-                        </button>
+                        </Link>
                         <button className="nav-item" onClick={handleItemClick}>
                             <div className="nav-icon">👥</div>
                             Peserta
