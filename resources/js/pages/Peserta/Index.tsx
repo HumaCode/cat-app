@@ -49,7 +49,12 @@ interface IndexProps {
 }
 
 export default function PesertaIndex() {
-    const { participants, stats, exams, departments, filters } = usePage<any>().props as unknown as IndexProps;
+    const props = (usePage<any>().props || {}) as unknown as IndexProps;
+    const participants = props.participants || { data: [], current_page: 1, last_page: 1, total: 0, from: 0, to: 0, links: [] };
+    const stats = props.stats || { total: 0, aktif: 0, nonaktif: 0, pending: 0, perlu_validasi: 0 };
+    const exams = props.exams || [];
+    const departments = props.departments || [];
+    const filters = props.filters || {};
 
     // Toast State
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
