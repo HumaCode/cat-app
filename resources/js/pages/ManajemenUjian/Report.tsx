@@ -322,7 +322,7 @@ export default function Report({ exam, participants = [] }: ReportProps) {
                             <button
                                 type="button"
                                 className="btn-modal confirm"
-                                style={{ background: 'var(--teal)', fontSize: '12px', padding: '0 12px', height: '32px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                style={{ background: 'var(--teal)', fontSize: '12px', padding: '0 14px', height: '32px', display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0, width: 'auto' }}
                                 onClick={() => handleExport('Excel')}
                             >
                                 <i className="bi bi-file-earmark-excel"></i> Export Excel
@@ -330,7 +330,7 @@ export default function Report({ exam, participants = [] }: ReportProps) {
                             <button
                                 type="button"
                                 className="btn-modal confirm"
-                                style={{ background: 'var(--rose)', fontSize: '12px', padding: '0 12px', height: '32px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                style={{ background: 'var(--rose)', fontSize: '12px', padding: '0 14px', height: '32px', display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0, width: 'auto' }}
                                 onClick={() => handleExport('PDF')}
                             >
                                 <i className="bi bi-file-earmark-pdf"></i> Export PDF
