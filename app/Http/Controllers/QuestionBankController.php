@@ -194,6 +194,8 @@ class QuestionBankController extends Controller
      */
     public function storeCategory(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('create', \App\Models\Category::class);
+
         $user = $request->user();
 
         $validated = $request->validate([

@@ -19,6 +19,8 @@ class CategoryController extends Controller
      */
     public function index(Request $request): Response
     {
+        \Illuminate\Support\Facades\Gate::authorize('viewAny', \App\Models\Category::class);
+
         $user = $request->user();
         $categories = $this->categoryService->getCategoriesByInstitution($user->institution_id);
 
@@ -32,6 +34,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('create', \App\Models\Category::class);
+
         $user = $request->user();
 
         $validated = $request->validate([
@@ -54,15 +58,9 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $user     = $request->user();
         $category = \App\Models\Category::findOrFail($id);
 
-        // Ownership guard
-        if ($user->role !== 'dev' && $user->username !== 'dev') {
-            if ($category->user_id !== null && $category->user_id !== $user->id) {
-                abort(403, 'Anda tidak memiliki izin untuk mengedit kategori ini.');
-            }
-        }
+        \Illuminate\Support\Facades\Gate::authorize('update', $category);
 
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
@@ -82,15 +80,9 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
-        $user     = $request->user();
         $category = \App\Models\Category::findOrFail($id);
 
-        // Ownership guard
-        if ($user->role !== 'dev' && $user->username !== 'dev') {
-            if ($category->user_id !== null && $category->user_id !== $user->id) {
-                abort(403, 'Anda tidak memiliki izin untuk menghapus kategori ini.');
-            }
-        }
+        \Illuminate\Support\Facades\Gate::authorize('delete', $category);
 
         // Prevent delete if category has questions
         if ($category->questions()->count() > 0) {

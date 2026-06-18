@@ -10,14 +10,18 @@ class CategoryRepository implements CategoryRepositoryInterface
 {
     public function getAllByInstitution(string $institutionId): Collection
     {
-        $query = Category::where('institution_id', $institutionId);
-
         $user = auth()->user();
-        if ($user && $user->role !== 'dev' && $user->username !== 'dev') {
-            $query->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
-            });
+
+        if ($user && ($user->role === 'dev' || $user->username === 'dev')) {
+            $query = Category::query();
+        } else {
+            $query = Category::where('institution_id', $institutionId);
+            if ($user) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereNull('user_id');
+                });
+            }
         }
 
         return $query->withCount('questions')

@@ -31,10 +31,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Kategori
-    Route::get('/kategori', [CategoryController::class, 'index'])->name('kategori.index');
-    Route::post('/kategori', [CategoryController::class, 'store'])->name('kategori.store');
-    Route::put('/kategori/{id}', [CategoryController::class, 'update'])->name('kategori.update');
-    Route::delete('/kategori/{id}', [CategoryController::class, 'destroy'])->name('kategori.destroy');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/kategori', [CategoryController::class, 'index'])->name('kategori.index');
+        Route::post('/kategori', [CategoryController::class, 'store'])->name('kategori.store');
+        Route::put('/kategori/{id}', [CategoryController::class, 'update'])->name('kategori.update');
+        Route::delete('/kategori/{id}', [CategoryController::class, 'destroy'])->name('kategori.destroy');
+    });
 
     // Peserta
     Route::get('/peserta', [ParticipantController::class, 'index'])->name('peserta.index');
