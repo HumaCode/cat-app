@@ -98,16 +98,6 @@ export default function PesertaDashboard({
                                 <OngoingExamCard exam={ongoingExam} />
                             </>
                         )}
-
-                        {/* Available Exams Section */}
-                        <div className="sec-head" style={{ marginTop: '28px' }}>
-                            <div className="sec-title">
-                                <span className="sec-title-dot" style={{ background: 'var(--indigo)' }}></span>
-                                Ujian Tersedia
-                            </div>
-                            <a className="sec-link">Lihat semua →</a>
-                        </div>
-                        <AvailableExamCard exams={availableExams} />
                     </div>
 
                     {/* Right Column: Widgets */}
@@ -117,6 +107,18 @@ export default function PesertaDashboard({
                         <AchievementWidget achievements={achievements} />
                     </div>
 
+                </div>
+
+                {/* Available Exams Section (Full Width) */}
+                <div>
+                    <div className="sec-head" style={{ marginTop: '12px' }}>
+                        <div className="sec-title">
+                            <span className="sec-title-dot" style={{ background: 'var(--indigo)' }}></span>
+                            Ujian Tersedia
+                        </div>
+                        <a className="sec-link">Lihat semua →</a>
+                    </div>
+                    <AvailableExamCard exams={availableExams} />
                 </div>
 
                 {/* Bottom Row: History Table */}

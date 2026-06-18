@@ -90,38 +90,83 @@ class PesertaDashboardController extends Controller
 
     private function getAvailableExams($user): array
     {
-        return [
-            [
-                'id'            => 'exam-001',
-                'title'         => 'TKD PPPK Guru — Paket Latihan B',
-                'type'          => 'Simulasi',
-                'difficulty'    => '🟡 Mudah',
-                'total_soal'    => 60,
-                'duration'      => 60,
-                'passing_grade' => 70,
-                'has_pembahasan'=> true,
-                'max_attempts'  => 3,
-                'tags'          => ['Kompetensi Teknis', 'Pedagogik'],
-                'color'         => '#4338CA',
-                'badge_bg'      => 'rgba(67,56,202,0.1)',
-                'badge_color'   => '#4338CA',
-            ],
-            [
-                'id'            => 'exam-002',
-                'title'         => 'Simulasi TWK — Wawasan Kebangsaan Lanjutan',
-                'type'          => 'Latihan',
-                'difficulty'    => '🔴 Sulit',
-                'total_soal'    => 80,
-                'duration'      => 75,
-                'passing_grade' => 75,
-                'has_pembahasan'=> false,
-                'max_attempts'  => null,
-                'tags'          => ['Pancasila', 'UUD 1945', 'NKRI'],
-                'color'         => '#0F766E',
-                'badge_bg'      => 'rgba(15,118,110,0.1)',
-                'badge_color'   => '#0F766E',
-            ],
-        ];
+        $registeredExamTitle = null;
+        if (is_array($user->exam_data) && isset($user->exam_data['ujian'])) {
+            $registeredExamTitle = $user->exam_data['ujian'];
+        }
+
+        if (!$registeredExamTitle) {
+            return [];
+        }
+
+        // Query active exams matching the registered title
+        $exams = \App\Models\Exam::with('category')
+            ->where('title', $registeredExamTitle)
+            ->where('status', 'aktif')
+            ->get();
+
+        return $exams->map(function ($exam) {
+            $type = $exam->type ?? 'Latihan';
+            
+            // Choose styles based on exam type
+            if ($type === 'Resmi' || $type === 'Official') {
+                $color = '#BE123C';
+                $badgeBg = 'rgba(190,18,60,0.1)';
+                $badgeColor = '#BE123C';
+            } elseif ($type === 'Simulasi') {
+                $color = '#4338CA';
+                $badgeBg = 'rgba(67,56,202,0.1)';
+                $badgeColor = '#4338CA';
+            } else {
+                $color = '#0F766E';
+                $badgeBg = 'rgba(15,118,110,0.1)';
+                $badgeColor = '#0F766E';
+            }
+
+            // Difficulty label based on passing grade
+            if ($exam->passing_grade >= 75) {
+                $difficulty = '🔴 Sulit';
+            } elseif ($exam->passing_grade <= 60) {
+                $difficulty = '🟢 Mudah';
+            } else {
+                $difficulty = '🟡 Sedang';
+            }
+
+            // Sum up total questions from settings['seksi'] if exists, otherwise fallback to 100
+            $totalSoal = 0;
+            if (is_array($exam->settings) && isset($exam->settings['seksi'])) {
+                foreach ($exam->settings['seksi'] as $seksi) {
+                    $totalSoal += $seksi['soal_count'] ?? 0;
+                }
+            }
+            if ($totalSoal === 0) {
+                $totalSoal = 100;
+            }
+
+            // Tags
+            $tags = [];
+            if ($exam->category) {
+                $tags[] = $exam->category->name;
+            } else {
+                $tags = ['Kompetensi Teknis', 'Latihan'];
+            }
+
+            return [
+                'id'            => $exam->id,
+                'title'         => $exam->title,
+                'type'          => $type,
+                'difficulty'    => $difficulty,
+                'total_soal'    => $totalSoal,
+                'duration'      => $exam->duration,
+                'passing_grade' => $exam->passing_grade,
+                'has_pembahasan'=> $exam->settings['show_answers'] ?? true,
+                'max_attempts'  => $exam->settings['attempts_limit'] ?? null,
+                'tags'          => $tags,
+                'color'         => $color,
+                'badge_bg'      => $badgeBg,
+                'badge_color'   => $badgeColor,
+            ];
+        })->toArray();
     }
 
     private function getUpcomingSchedule($user): array

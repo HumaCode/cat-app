@@ -36,7 +36,7 @@ export default function AchievementWidget({ achievements }: AchievementWidgetPro
         <div ref={elementRef} className={`widget-card anim ${visible ? 'in' : ''}`}>
             <div className="widget-title">🎖️ Pencapaian</div>
             <div className="badge-grid">
-                {achievements.map((badge, idx) => (
+                {(achievements || []).map((badge, idx) => (
                     <div 
                         key={idx} 
                         className={`badge-item ${badge.locked ? 'locked' : ''}`}

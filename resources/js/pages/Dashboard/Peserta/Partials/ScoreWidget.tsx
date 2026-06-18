@@ -37,7 +37,7 @@ export default function ScoreWidget({ scores }: ScoreWidgetProps) {
         <div ref={elementRef} className={`widget-card anim ${visible ? 'in' : ''}`}>
             <div className="widget-title">📊 Nilai per Kategori</div>
             <div className="score-history">
-                {scores.map((score, idx) => {
+                {(scores || []).map((score, idx) => {
                     const widthPct = (score.value / score.max) * 100;
                     return (
                         <div key={idx} className="score-hist-item">

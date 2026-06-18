@@ -60,7 +60,7 @@ export default function HistoryTable({ history }: HistoryTableProps) {
                         </tr>
                     </thead>
                     <tbody>
-                        {history.map((item, idx) => (
+                        {(history || []).map((item, idx) => (
                             <tr key={idx}>
                                 <td><strong style={{ color: 'var(--ink)' }}>{item.title}</strong></td>
                                 <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>

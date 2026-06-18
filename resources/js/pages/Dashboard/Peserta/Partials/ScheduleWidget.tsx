@@ -39,7 +39,7 @@ export default function ScheduleWidget({ schedule }: ScheduleWidgetProps) {
         <div ref={elementRef} className={`widget-card anim ${visible ? 'in' : ''}`}>
             <div className="widget-title">📅 Jadwal Mendatang</div>
             <div className="schedule-list">
-                {schedule.map((item, idx) => (
+                {(schedule || []).map((item, idx) => (
                     <div key={idx} className="schedule-item">
                         <div 
                             className="schedule-date-box" 

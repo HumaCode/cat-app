@@ -113,7 +113,7 @@ export default function OngoingExamCard({ exam }: OngoingExamCardProps) {
 
                 <div className="exam-card-footer">
                     <div className="exam-footer-left">
-                        {exam.tags.map((tag, i) => (
+                        {(exam?.tags || []).map((tag, i) => (
                             <span key={i} className="exam-tag">{tag}</span>
                         ))}
                     </div>

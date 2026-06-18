@@ -55,6 +55,13 @@ class UserSeeder extends Seeder
             'username' => 'peserta',
             'email' => 'peserta@example.com',
             'institution_id' => $institution->id,
+            'exam_data' => [
+                'ujian' => 'SKD CPNS 2025 — Paket A',
+                'attempts' => [false, false, false],
+                'ujian_count' => 1,
+                'nilai' => null,
+                'riwayat' => []
+            ]
         ]);
 
         // Developer User

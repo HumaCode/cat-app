@@ -42,9 +42,19 @@ export default function AvailableExamCard({ exams }: AvailableExamCardProps) {
         return () => observer.disconnect();
     }, []);
 
+    if (!exams || exams.length === 0) {
+        return (
+            <div className="exam-card" style={{ padding: '36px 24px', textAlign: 'center', color: 'var(--ink-3)', borderLeft: '4px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '32px', marginBottom: '12px' }}>📭</span>
+                <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: '15px' }}>Tidak Ada Ujian Tersedia</div>
+                <div style={{ fontSize: '13px', marginTop: '4px', maxWidth: '320px', lineHeight: 1.4 }}>Anda belum terdaftar atau diundang ke ujian aktif mana pun saat ini.</div>
+            </div>
+        );
+    }
+
     return (
         <div ref={elementRef} className={`exam-stack anim ${visible ? 'in' : ''}`}>
-            {exams.map((exam) => (
+            {(exams || []).map((exam) => (
                 <div 
                     key={exam.id} 
                     className="exam-card" 
@@ -77,7 +87,7 @@ export default function AvailableExamCard({ exams }: AvailableExamCardProps) {
                     </div>
                     <div className="exam-card-footer">
                         <div className="exam-footer-left">
-                            {exam.tags.map((tag, i) => (
+                            {(exam?.tags || []).map((tag, i) => (
                                 <span key={i} className="exam-tag">{tag}</span>
                             ))}
                         </div>

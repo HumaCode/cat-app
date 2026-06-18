@@ -38,9 +38,9 @@
   --r-sm: 10px;
   --r-xs: 7px;
 
-  --font:  'Cabinet Grotesk', system-ui, sans-serif;
-  --serif: 'Instrument Serif', Georgia, serif;
-  --mono:  'DM Mono', monospace;
+  --font:  'Poppins', system-ui, sans-serif;
+  --serif: 'Poppins', sans-serif;
+  --mono:  'Poppins', sans-serif;
 
   --topbar-h: 66px;
 }
@@ -190,7 +190,8 @@
 @keyframes blobFloat { 0%{transform:translate(0,0);} 100%{transform:translate(20px,15px);} }
 
 .hero-inner {
-  max-width: 1200px; margin: 0 auto;
+  max-width: 100%; margin: 0 auto;
+  padding: 0 40px;
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: 32px; position: relative; z-index: 1; flex-wrap: wrap;
 }
@@ -217,7 +218,7 @@
   font-size: 13px; color: rgba(255,255,255,0.7);
 }
 .hero-meta-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.4); }
-
+ 
 /* Hero score ring */
 .hero-score {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -235,20 +236,22 @@
 }
 .score-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 .score-title { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; text-align: center; }
-
+ 
 /* ═══════════════════════════
    QUICK STATS STRIP
    ═══════════════════════════ */
 .stats-strip {
-  max-width: 1200px; margin: 0 auto;
+  max-width: calc(100% - 80px);
+  margin: 24px auto 0;
   display: grid; grid-template-columns: repeat(4,1fr);
   gap: 1px;
   background: var(--border);
-  border-radius: 0 0 var(--r) var(--r);
+  border-radius: var(--r);
   overflow: hidden;
   border: 1px solid var(--border);
-  border-top: none;
-  margin-left: auto; margin-right: auto;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 10;
 }
 .stat-cell {
   background: var(--surface);
@@ -267,13 +270,13 @@
   color: var(--ink); line-height: 1;
 }
 .stat-cell-lbl { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
-
+ 
 /* ═══════════════════════════
    MAIN CONTENT
    ═══════════════════════════ */
 .content-wrap {
-  max-width: 1200px; margin: 0 auto;
-  padding: 28px 28px 56px;
+  max-width: 100%; margin: 0 auto;
+  padding: 28px 40px 56px;
   display: flex; flex-direction: column; gap: 28px;
 }
 
