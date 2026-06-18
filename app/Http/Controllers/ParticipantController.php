@@ -22,8 +22,12 @@ class ParticipantController extends Controller
         $user = $request->user();
         $institutionId = $user->institution_id;
 
-        // Fetch all participants
-        $participants = $this->userService->getParticipantsByInstitution($institutionId);
+        // Fetch all participants for stats
+        if ($user->role === 'admin' || $user->role === 'dev') {
+            $participants = User::where('role', 'peserta')->get();
+        } else {
+            $participants = $this->userService->getParticipantsByInstitution($institutionId);
+        }
 
         // Compute stats
         $total = $participants->count();
@@ -37,8 +41,10 @@ class ParticipantController extends Controller
         })->count();
 
         // Apply filters in PHP/Eloquent (Search, Status, Ujian, Instansi, Sort)
-        $query = User::where('institution_id', $institutionId)
-            ->where('role', 'peserta');
+        $query = User::where('role', 'peserta');
+        if ($user->role !== 'admin' && $user->role !== 'dev') {
+            $query->where('institution_id', $institutionId);
+        }
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
@@ -82,7 +88,7 @@ class ParticipantController extends Controller
 
         // Get unique exams and departments for filtering
         $allExams = $participants->pluck('exam_data.ujian')->filter()->unique()->values()->all();
-        $allInstansi = $participants->pluck('instansi')->filter()->unique()->values()->all();
+        $allInstansi = \App\Models\Institution::orderBy('name')->pluck('name')->toArray();
 
         return Inertia::render('Peserta/Index', [
             'participants' => $paginated,

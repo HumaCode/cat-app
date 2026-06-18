@@ -5,6 +5,7 @@ use App\Http\Controllers\XenditWebhookController;
 use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ParticipantController;
+use App\Http\Controllers\ExamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -50,6 +51,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/bank-soal/{id}', [QuestionBankController::class, 'destroy'])->name('bank-soal.destroy');
     Route::post('/bank-soal/categories', [QuestionBankController::class, 'storeCategory'])->name('bank-soal.categories.store');
     Route::post('/bank-soal/bulk', [QuestionBankController::class, 'bulkAction'])->name('bank-soal.bulk');
+
+    // Manajemen Ujian
+    Route::get('/ujian', [ExamController::class, 'index'])->name('ujian.index');
+    Route::post('/ujian', [ExamController::class, 'store'])->name('ujian.store');
+    Route::get('/ujian/{id}', [ExamController::class, 'show'])->name('ujian.show');
+    Route::put('/ujian/{id}', [ExamController::class, 'update'])->name('ujian.update');
+    Route::delete('/ujian/{id}', [ExamController::class, 'destroy'])->name('ujian.destroy');
+    Route::get('/ujian/{id}/monitor', [ExamController::class, 'monitor'])->name('ujian.monitor');
+
+    // Peserta Ujian
+    Route::get('/ujian/{id}/peserta', [ExamController::class, 'pesertaList'])->name('ujian.peserta.list');
+    Route::post('/ujian/{id}/peserta', [ExamController::class, 'pesertaAdd'])->name('ujian.peserta.add');
+    Route::delete('/ujian/{id}/peserta/{userId}', [ExamController::class, 'pesertaRemove'])->name('ujian.peserta.remove');
 });
 
 require __DIR__.'/auth.php';

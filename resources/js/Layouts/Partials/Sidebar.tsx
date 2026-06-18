@@ -56,11 +56,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <div className="nav-icon">🏠</div>
                             Dashboard
                         </Link>
-                        <button className="nav-item" onClick={handleItemClick}>
+                        <Link
+                            href={route('ujian.index')}
+                            onClick={handleItemClick}
+                            className={`nav-item ${currentRoute.startsWith('ujian') ? 'active' : ''}`}
+                        >
                             <div className="nav-icon">📋</div>
                             Manajemen Ujian
                             <span className="nav-badge teal">3</span>
-                        </button>
+                        </Link>
                         <Link
                             href={route('kategori.index')}
                             onClick={handleItemClick}
