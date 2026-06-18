@@ -432,17 +432,89 @@ export default function Index({
                                         Halaman <strong>{questions.current_page}</strong> dari <strong>{questions.last_page || 1}</strong>
                                     </div>
                                     <div className="pg-controls">
-                                        {questions.links.map((link, idx) => (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                className={`pg-btn ${link.url ? '' : 'disabled'} ${link.active ? 'active' : ''} ${link.label.includes('Previous') || link.label.includes('Next') ? 'wide' : ''}`}
-                                                disabled={!link.url}
-                                                onClick={() => handlePageChange(link.url)}
-                                            >
-                                                {cleanLabel(link.label)}
-                                            </button>
-                                        ))}
+                                        {(() => {
+                                            const currentPage = questions.current_page;
+                                            const lastPage = questions.last_page || 1;
+                                            const links = questions.links;
+                                            
+                                            const prevLink = links.find(l => l.label.includes('Previous'));
+                                            const nextLink = links.find(l => l.label.includes('Next'));
+                                            
+                                            const getUrlForPage = (pageNum: number) => {
+                                                const found = links.find(l => l.label === String(pageNum));
+                                                if (found) return found.url;
+                                                const anyUrl = links.find(l => l.url !== null)?.url;
+                                                if (anyUrl) {
+                                                    try {
+                                                        const urlObj = new URL(anyUrl);
+                                                        urlObj.searchParams.set('page', String(pageNum));
+                                                        return urlObj.toString();
+                                                    } catch (e) {
+                                                        return null;
+                                                    }
+                                                }
+                                                return null;
+                                            };
+
+                                            const pages = [];
+                                            
+                                            // Previous
+                                            pages.push({
+                                                label: '« Sblm',
+                                                url: prevLink ? prevLink.url : null,
+                                                active: false,
+                                                wide: true
+                                            });
+
+                                            let start = Math.max(1, currentPage - 2);
+                                            let end = Math.min(lastPage, currentPage + 2);
+
+                                            if (end - start + 1 < 5) {
+                                                if (start === 1) {
+                                                    end = Math.min(lastPage, start + 4);
+                                                } else if (end === lastPage) {
+                                                    start = Math.max(1, end - 4);
+                                                }
+                                            }
+
+                                            if (start > 1) {
+                                                pages.push({ label: '1', url: getUrlForPage(1), active: currentPage === 1 });
+                                                if (start > 2) {
+                                                    pages.push({ label: '...', url: null, active: false });
+                                                }
+                                            }
+
+                                            for (let i = start; i <= end; i++) {
+                                                pages.push({ label: String(i), url: getUrlForPage(i), active: currentPage === i });
+                                            }
+
+                                            if (end < lastPage) {
+                                                if (end < lastPage - 1) {
+                                                    pages.push({ label: '...', url: null, active: false });
+                                                }
+                                                pages.push({ label: String(lastPage), url: getUrlForPage(lastPage), active: currentPage === lastPage });
+                                            }
+
+                                            // Next
+                                            pages.push({
+                                                label: 'Sldt »',
+                                                url: nextLink ? nextLink.url : null,
+                                                active: false,
+                                                wide: true
+                                            });
+
+                                            return pages.map((link, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    className={`pg-btn ${link.url ? '' : 'disabled'} ${link.active ? 'active' : ''} ${link.wide ? 'wide' : ''}`}
+                                                    disabled={!link.url}
+                                                    onClick={() => handlePageChange(link.url)}
+                                                >
+                                                    {link.label}
+                                                </button>
+                                            ));
+                                        })()}
                                     </div>
                                 </div>
                             )}

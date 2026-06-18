@@ -180,29 +180,92 @@ export default function ExamTable({
             </div>
 
             {/* Pagination Controls */}
-            {exams.links && exams.links.length > 0 && (
+            {exams.total > 0 && exams.last_page > 1 && (
                 <div className="pagination-row">
                     <div className="pagination-info">
                         Menampilkan <strong>{exams.from || 0}–{exams.to || 0}</strong> dari <strong>{exams.total}</strong> ujian
                     </div>
                     <div className="pagination-btns">
-                        {exams.links.map((link, idx) => {
-                            // Convert HTML entity arrows to clean labels
-                            let label = link.label;
-                            if (label.includes('Previous')) label = '←';
-                            if (label.includes('Next')) label = '→';
+                        {(() => {
+                            const currentPage = exams.current_page;
+                            const lastPage = exams.last_page || 1;
+                            const links = exams.links;
+                            
+                            const prevLink = links.find(l => l.label.includes('Previous'));
+                            const nextLink = links.find(l => l.label.includes('Next'));
+                            
+                            const getUrlForPage = (pageNum: number) => {
+                                const found = links.find(l => l.label === String(pageNum));
+                                if (found) return found.url;
+                                const anyUrl = links.find(l => l.url !== null)?.url;
+                                if (anyUrl) {
+                                    try {
+                                        const urlObj = new URL(anyUrl);
+                                        urlObj.searchParams.set('page', String(pageNum));
+                                        return urlObj.toString();
+                                    } catch (e) {
+                                        return null;
+                                    }
+                                }
+                                return null;
+                            };
 
-                            return (
+                            const pages = [];
+                            
+                            // Previous
+                            pages.push({
+                                label: '←',
+                                url: prevLink ? prevLink.url : null,
+                                active: false
+                            });
+
+                            let start = Math.max(1, currentPage - 2);
+                            let end = Math.min(lastPage, currentPage + 2);
+
+                            if (end - start + 1 < 5) {
+                                if (start === 1) {
+                                    end = Math.min(lastPage, start + 4);
+                                } else if (end === lastPage) {
+                                    start = Math.max(1, end - 4);
+                                }
+                            }
+
+                            if (start > 1) {
+                                pages.push({ label: '1', url: getUrlForPage(1), active: currentPage === 1 });
+                                if (start > 2) {
+                                    pages.push({ label: '...', url: null, active: false });
+                                }
+                            }
+
+                            for (let i = start; i <= end; i++) {
+                                pages.push({ label: String(i), url: getUrlForPage(i), active: currentPage === i });
+                            }
+
+                            if (end < lastPage) {
+                                if (end < lastPage - 1) {
+                                    pages.push({ label: '...', url: null, active: false });
+                                }
+                                pages.push({ label: String(lastPage), url: getUrlForPage(lastPage), active: currentPage === lastPage });
+                            }
+
+                            // Next
+                            pages.push({
+                                label: '→',
+                                url: nextLink ? nextLink.url : null,
+                                active: false
+                            });
+
+                            return pages.map((link, idx) => (
                                 <button
                                     key={idx}
                                     className={`page-btn ${link.active ? 'active' : ''}`}
                                     disabled={!link.url}
                                     onClick={() => link.url && onPageChange(link.url)}
                                 >
-                                    {label}
+                                    {link.label}
                                 </button>
-                            );
-                        })}
+                            ));
+                        })()}
                     </div>
                 </div>
             )}
