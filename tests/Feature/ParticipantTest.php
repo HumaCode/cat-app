@@ -7,29 +7,74 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->institution = Institution::create([
-        'name' => 'Badan Kepegawaian Negara',
-        'slug' => 'bkn',
-        'subscription_plan' => 'professional',
+    $this->institutionA = Institution::create([
+        'name' => 'Kementerian Kominfo',
+        'code' => 'KOMINFO',
+        'status' => 'active',
     ]);
 
-    $this->user = User::factory()->admin()->create([
-        'institution_id' => $this->institution->id,
-        'email' => 'admin@example.com',
+    $this->institutionB = Institution::create([
+        'name' => 'Kementerian Keuangan',
+        'code' => 'KEMENKEU',
+        'status' => 'active',
+    ]);
+
+    $this->adminA = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'admin',
+        'email' => 'adminA@example.com',
+    ]);
+
+    $this->adminB = User::factory()->create([
+        'institution_id' => $this->institutionB->id,
+        'role' => 'admin',
+        'email' => 'adminB@example.com',
+    ]);
+
+    $this->dev = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'dev',
+        'email' => 'dev@example.com',
+    ]);
+
+    $this->pesertaA = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+        'name' => 'Peserta Kominfo',
+        'email' => 'pesertaA@example.com',
+    ]);
+
+    $this->pesertaB = User::factory()->create([
+        'institution_id' => $this->institutionB->id,
+        'role' => 'peserta',
+        'name' => 'Peserta Kemenkeu',
+        'email' => 'pesertaB@example.com',
     ]);
 });
 
-test('authenticated admin can view participant index', function () {
+test('authenticated admin can view participant index scoped to their institution', function () {
     $response = $this
-        ->actingAs($this->user)
+        ->actingAs($this->adminA)
         ->get('/peserta');
 
     $response->assertOk();
+    $response->assertSee('Peserta Kominfo');
+    $response->assertDontSee('Peserta Kemenkeu');
 });
 
-test('admin can create a participant', function () {
+test('dev can view all participants across all institutions', function () {
     $response = $this
-        ->actingAs($this->user)
+        ->actingAs($this->dev)
+        ->get('/peserta');
+
+    $response->assertOk();
+    $response->assertSee('Peserta Kominfo');
+    $response->assertSee('Peserta Kemenkeu');
+});
+
+test('admin can create a participant within their institution', function () {
+    $response = $this
+        ->actingAs($this->adminA)
         ->post('/peserta', [
             'name' => 'Rina Wijayanti',
             'email' => 'rina@example.com',
@@ -41,20 +86,57 @@ test('admin can create a participant', function () {
         'name' => 'Rina Wijayanti',
         'email' => 'rina@example.com',
         'role' => 'peserta',
+        'institution_id' => $this->institutionA->id,
     ]);
 });
 
-test('inertia filters prop is serialized as an object when query params are empty', function () {
+test('admin cannot update a participant from another institution', function () {
     $response = $this
-        ->actingAs($this->user)
-        ->get('/peserta');
+        ->actingAs($this->adminA)
+        ->put("/peserta/{$this->pesertaB->id}", [
+            'name' => 'Peserta Kemenkeu Diubah',
+            'email' => 'pesertaB_new@example.com',
+            'status' => 'aktif',
+        ]);
 
-    $response->assertOk();
-    
-    // Get the Inertia page data structure
-    $page = $response->original->getData()['page'];
-    $filters = $page['props']['filters'];
-    
-    // Assert that filters is an object (stdClass) and not an empty array
-    expect($filters)->toBeObject();
+    $response->assertStatus(403);
+});
+
+test('admin can update their own participant', function () {
+    $response = $this
+        ->actingAs($this->adminA)
+        ->put("/peserta/{$this->pesertaA->id}", [
+            'name' => 'Peserta Kominfo Diubah',
+            'email' => 'pesertaA@example.com',
+            'status' => 'nonaktif',
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('users', [
+        'id' => $this->pesertaA->id,
+        'name' => 'Peserta Kominfo Diubah',
+        'status' => 'nonaktif',
+    ]);
+});
+
+test('admin cannot delete a participant from another institution', function () {
+    $response = $this
+        ->actingAs($this->adminA)
+        ->delete("/peserta/{$this->pesertaB->id}");
+
+    $response->assertStatus(403);
+    $this->assertDatabaseHas('users', [
+        'id' => $this->pesertaB->id,
+    ]);
+});
+
+test('dev can delete any participant', function () {
+    $response = $this
+        ->actingAs($this->dev)
+        ->delete("/peserta/{$this->pesertaB->id}");
+
+    $response->assertRedirect();
+    $this->assertDatabaseMissing('users', [
+        'id' => $this->pesertaB->id,
+    ]);
 });

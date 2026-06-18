@@ -39,12 +39,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Peserta
-    Route::get('/peserta', [ParticipantController::class, 'index'])->name('peserta.index');
-    Route::post('/peserta', [ParticipantController::class, 'store'])->name('peserta.store');
-    Route::put('/peserta/{id}', [ParticipantController::class, 'update'])->name('peserta.update');
-    Route::delete('/peserta/{id}', [ParticipantController::class, 'destroy'])->name('peserta.destroy');
-    Route::post('/peserta/bulk', [ParticipantController::class, 'bulkAction'])->name('peserta.bulk');
-    Route::post('/peserta/import', [ParticipantController::class, 'import'])->name('peserta.import');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/peserta', [ParticipantController::class, 'index'])->name('peserta.index');
+        Route::post('/peserta', [ParticipantController::class, 'store'])->name('peserta.store');
+        Route::put('/peserta/{id}', [ParticipantController::class, 'update'])->name('peserta.update');
+        Route::delete('/peserta/{id}', [ParticipantController::class, 'destroy'])->name('peserta.destroy');
+        Route::post('/peserta/bulk', [ParticipantController::class, 'bulkAction'])->name('peserta.bulk');
+        Route::post('/peserta/import', [ParticipantController::class, 'import'])->name('peserta.import');
+    });
 
     // Bank Soal
     Route::get('/bank-soal', [QuestionBankController::class, 'index'])->name('bank-soal.index');

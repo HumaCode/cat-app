@@ -19,11 +19,13 @@ class ParticipantController extends Controller
      */
     public function index(Request $request): Response
     {
+        \Illuminate\Support\Facades\Gate::authorize('viewAny', User::class);
+
         $user = $request->user();
         $institutionId = $user->institution_id;
 
         // Fetch all participants for stats
-        if ($user->role === 'admin' || $user->role === 'dev') {
+        if ($user->role === 'dev') {
             $participants = User::where('role', 'peserta')->get();
         } else {
             $participants = $this->userService->getParticipantsByInstitution($institutionId);
@@ -42,7 +44,7 @@ class ParticipantController extends Controller
 
         // Apply filters in PHP/Eloquent (Search, Status, Ujian, Instansi, Sort)
         $query = User::where('role', 'peserta');
-        if ($user->role !== 'admin' && $user->role !== 'dev') {
+        if ($user->role !== 'dev') {
             $query->where('institution_id', $institutionId);
         }
 
@@ -110,6 +112,8 @@ class ParticipantController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('create', User::class);
+
         $user = $request->user();
 
         $validated = $request->validate([
@@ -156,6 +160,9 @@ class ParticipantController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $participant = User::findOrFail($id);
+        \Illuminate\Support\Facades\Gate::authorize('update', $participant);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'nip_nik' => 'nullable|string|max:50',
@@ -176,15 +183,16 @@ class ParticipantController extends Controller
      */
     public function destroy(string $id)
     {
+        $participant = User::findOrFail($id);
+        \Illuminate\Support\Facades\Gate::authorize('delete', $participant);
+
         $this->userService->deleteParticipant($id);
         return redirect()->back()->with('success', 'Peserta berhasil dihapus.');
     }
 
-    /**
-     * Handle bulk actions.
-     */
     public function bulkAction(Request $request)
     {
+        $user = $request->user();
         $validated = $request->validate([
             'action' => 'required|in:delete,status,register',
             'ids' => 'required|array|min:1',
@@ -194,6 +202,18 @@ class ParticipantController extends Controller
         ]);
 
         $ids = $validated['ids'];
+
+        if ($user->role !== 'dev') {
+            $ids = User::whereIn('id', $ids)
+                ->where('role', 'peserta')
+                ->where('institution_id', $user->institution_id)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'Tidak ada peserta yang bisa dimodifikasi.');
+        }
 
         if ($validated['action'] === 'delete') {
             $this->userService->bulkDelete($ids);
@@ -217,6 +237,8 @@ class ParticipantController extends Controller
      */
     public function import(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('create', User::class);
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
             'ujian' => 'required|string|max:255',
