@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Peserta — CAT System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════
+   TOKENS
+═══════════════════════════ */
+:root {
+  --ink:       #141421;
+  --ink-2:     #38384F;
+  --ink-3:     #7474A0;
+  --ink-4:     #ADADCC;
+  --ink-5:     #DDDDEF;
+
+  --bg:        #F8F7FF;
+  --bg-2:      #F0EFFA;
+  --surface:   #FFFFFF;
+  --border:    rgba(20,20,33,0.08);
+  --border-2:  rgba(20,20,33,0.04);
+
+  --violet:    #5B21B6;
+  --indigo:    #4338CA;
+  --blue:      #2563EB;
+  --cyan:      #0891B2;
+  --teal:      #0F766E;
+  --emerald:   #047857;
+  --amber:     #B45309;
+  --rose:      #BE123C;
+  --pink:      #9D174D;
+
+  --grad-main: linear-gradient(135deg, #5B21B6 0%, #4338CA 50%, #2563EB 100%);
+  --grad-warm: linear-gradient(135deg, #B45309, #D97706);
+  --grad-teal: linear-gradient(135deg, #0F766E, #0891B2);
+  --grad-rose: linear-gradient(135deg, #BE123C, #E11D48);
+
+  --shadow-xs: 0 1px 3px rgba(20,20,33,0.06);
+  --shadow-sm: 0 2px 10px rgba(20,20,33,0.08);
+  --shadow-md: 0 8px 28px rgba(20,20,33,0.10);
+  --shadow-lg: 0 20px 60px rgba(20,20,33,0.12);
+
+  --r:    16px;
+  --r-sm: 10px;
+  --r-xs: 7px;
+
+  --font:  'Cabinet Grotesk', system-ui, sans-serif;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono:  'DM Mono', monospace;
+
+  --topbar-h: 66px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+/* ═══════════════════════════
+   CANVAS
+═══════════════════════════ */
+#cvs {
+  position: fixed; inset: 0;
+  z-index: 0; pointer-events: none;
+}
+
+/* ═══════════════════════════
+   TOPBAR
+═══════════════════════════ */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  display: flex; align-items: center;
+  padding: 0 28px;
+  gap: 0;
+}
+
+.topbar-brand {
+  display: flex; align-items: center; gap: 10px;
+  margin-right: 32px; text-decoration: none; flex-shrink: 0;
+}
+.brand-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--grad-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900; color: #fff;
+  box-shadow: 0 4px 12px rgba(67,56,202,0.35);
+}
+.brand-name {
+  font-size: 15px; font-weight: 800; color: var(--ink);
+  letter-spacing: -0.3px;
+}
+
+/* Nav links */
+.topbar-nav {
+  display: flex; align-items: center; gap: 2px;
+  flex: 1;
+}
+.nav-link {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border-radius: var(--r-sm);
+  font-size: 13.5px; font-weight: 600; color: var(--ink-3);
+  transition: all 0.2s; position: relative;
+  cursor: pointer;
+}
+.nav-link:hover { color: var(--ink); background: var(--bg-2); }
+.nav-link.active { color: var(--indigo); background: rgba(67,56,202,0.08); }
+.nav-link .nav-icon { font-size: 15px; }
+.nav-pill {
+  font-size: 10px; font-weight: 700;
+  background: var(--indigo); color: #fff;
+  padding: 2px 6px; border-radius: 100px;
+}
+.nav-pill.rose { background: var(--rose); }
+
+/* Right side */
+.topbar-right {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.topbar-notif {
+  width: 36px; height: 36px; border-radius: var(--r-xs);
+  border: 1px solid var(--border); background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--ink-3); transition: all 0.18s;
+  position: relative;
+}
+.topbar-notif:hover { background: var(--bg-2); color: var(--ink); }
+.notif-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--rose); border: 1.5px solid var(--surface);
+}
+.topbar-ava {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #fff;
+  cursor: pointer; transition: transform 0.2s;
+  box-shadow: 0 2px 8px rgba(67,56,202,0.3);
+}
+.topbar-ava:hover { transform: scale(1.05); }
+
+/* Mobile hamburger */
+.hamburger {
+  display: none; width: 36px; height: 36px; border-radius: var(--r-xs);
+  align-items: center; justify-content: center; font-size: 18px;
+  color: var(--ink-2); transition: background 0.18s;
+}
+.hamburger:hover { background: var(--bg-2); }
+
+/* Mobile nav drawer */
+.mobile-nav {
+  display: none;
+  position: fixed; top: var(--topbar-h); left: 0; right: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 20px 20px; flex-direction: column; gap: 4px;
+  z-index: 99; box-shadow: var(--shadow-md);
+}
+.mobile-nav.open { display: flex; }
+.mobile-nav .nav-link { font-size: 14.5px; }
+
+/* ═══════════════════════════
+   PAGE WRAP
+═══════════════════════════ */
+.page {
+  padding-top: var(--topbar-h);
+  position: relative; z-index: 1;
+}
+
+/* ═══════════════════════════
+   HERO BANNER
+═══════════════════════════ */
+.hero-banner {
+  background: var(--grad-main);
+  position: relative; overflow: hidden;
+  padding: 48px 32px 56px;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+/* Blobs */
+.hero-blob {
+  position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none;
+}
+.hb1 { width: 400px; height: 400px; background: rgba(255,255,255,0.06); top: -150px; right: -80px; animation: blobFloat 8s ease-in-out infinite alternate; }
+.hb2 { width: 280px; height: 280px; background: rgba(8,145,178,0.25); bottom: -100px; left: 10%; animation: blobFloat 6s ease-in-out infinite alternate 2s; }
+.hb3 { width: 180px; height: 180px; background: rgba(91,33,182,0.4); top: 20%; right: 30%; animation: blobFloat 10s ease-in-out infinite alternate 4s; }
+@keyframes blobFloat { 0%{transform:translate(0,0);} 100%{transform:translate(20px,15px);} }
+
+.hero-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 32px; position: relative; z-index: 1; flex-wrap: wrap;
+}
+.hero-text {}
+.hero-greeting {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.55);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.hero-greeting::before {
+  content: ''; width: 18px; height: 2px; border-radius: 2px;
+  background: rgba(255,255,255,0.4);
+}
+.hero-name {
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 44px); font-weight: 400;
+  color: #fff; line-height: 1.15; margin-bottom: 14px;
+}
+.hero-name em { font-style: italic; color: rgba(255,255,255,0.65); }
+.hero-meta {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.hero-meta-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: rgba(255,255,255,0.7);
+}
+.hero-meta-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+
+/* Hero score ring */
+.hero-score {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.score-ring-wrap { position: relative; }
+.score-ring-wrap svg { transform: rotate(-90deg); }
+.score-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.score-num {
+  font-family: var(--mono); font-size: 26px; font-weight: 500;
+  color: #fff; line-height: 1;
+}
+.score-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.score-title { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; text-align: center; }
+
+/* ═══════════════════════════
+   QUICK STATS STRIP
+═══════════════════════════ */
+.stats-strip {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: 0 0 var(--r) var(--r);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-top: none;
+  margin-left: auto; margin-right: auto;
+  /* full bleed then max-width below */
+}
+.stat-cell {
+  background: var(--surface);
+  padding: 18px 24px;
+  display: flex; align-items: center; gap: 14px;
+  transition: background 0.18s;
+}
+.stat-cell:hover { background: var(--bg-2); }
+.stat-cell-icon {
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  flex-shrink: 0;
+}
+.stat-cell-num {
+  font-family: var(--mono); font-size: 22px; font-weight: 500;
+  color: var(--ink); line-height: 1;
+}
+.stat-cell-lbl { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+
+/* ═══════════════════════════
+   MAIN CONTENT
+═══════════════════════════ */
+.content-wrap {
+  max-width: 1200px; margin: 0 auto;
+  padding: 28px 28px 56px;
+  display: flex; flex-direction: column; gap: 28px;
+}
+
+/* Horizontal layout: active exam + sidebar cards */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ═══════════════════════════
+   SECTION HEADER
+═══════════════════════════ */
+.sec-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.sec-title {
+  font-size: 16px; font-weight: 800; color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-title-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.sec-link {
+  font-size: 13px; font-weight: 600; color: var(--indigo);
+  transition: opacity 0.2s;
+}
+.sec-link:hover { opacity: 0.7; }
+
+/* ═══════════════════════════
+   EXAM CARDS — available exams
+═══════════════════════════ */
+.exam-stack { display: flex; flex-direction: column; gap: 14px; }
+
+.exam-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.25s;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.exam-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 4px; background: var(--card-color, var(--indigo));
+  border-radius: 4px 0 0 4px;
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.exam-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.exam-card:hover::before { transform: scaleY(1); }
+
+.exam-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px;
+}
+.exam-card-meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.exam-type-badge {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 3px 9px; border-radius: 100px;
+  background: var(--badge-bg); color: var(--badge-color);
+}
+.exam-difficulty {
+  font-size: 11px; color: var(--ink-4); display: flex; align-items: center; gap: 4px;
+}
+.exam-title {
+  font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.3;
+  margin-bottom: 8px; letter-spacing: -0.3px;
+}
+.exam-desc { font-size: 13px; color: var(--ink-3); line-height: 1.55; margin-bottom: 16px; }
+
+.exam-info-row {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.exam-info-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--ink-3);
+}
+.exam-info-icon { font-size: 14px; }
+
+/* Progress (for ongoing) */
+.exam-progress { margin-bottom: 14px; }
+.prog-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--ink-3); margin-bottom: 6px;
+}
+.prog-track {
+  height: 6px; border-radius: 100px;
+  background: var(--bg-2); overflow: hidden;
+}
+.prog-fill {
+  height: 100%; border-radius: 100px;
+  background: var(--card-color, var(--indigo));
+  transition: width 1s cubic-bezier(0.22,1,0.36,1);
+}
+
+.exam-card-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-top: 14px; border-top: 1px solid var(--border-2);
+}
+.exam-footer-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.exam-tag {
+  font-size: 11.5px; color: var(--ink-4);
+  background: var(--bg-2); border-radius: 100px;
+  padding: 3px 10px;
+}
+
+.btn-start {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: var(--r-sm);
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  background: var(--card-color, var(--indigo)); color: #fff;
+  box-shadow: 0 4px 14px rgba(67,56,202,0.3);
+  transition: all 0.2s; flex-shrink: 0;
+  border: none; cursor: pointer;
+}
+.btn-start:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(67,56,202,0.4); }
+
+.btn-continue {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: var(--r-sm);
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  background: var(--ink); color: #fff;
+  box-shadow: 0 4px 14px rgba(20,20,33,0.2);
+  transition: all 0.2s; flex-shrink: 0;
+  border: none; cursor: pointer;
+  animation: pulseBtn 2.5s ease-in-out infinite;
+}
+.btn-continue:hover { opacity: 0.88; transform: translateY(-1px); }
+@keyframes pulseBtn {
+  0%,100%{ box-shadow: 0 4px 14px rgba(20,20,33,0.2); }
+  50%{ box-shadow: 0 4px 28px rgba(67,56,202,0.45); }
+}
+
+.timer-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(190,18,60,0.08); border: 1px solid rgba(190,18,60,0.15);
+  border-radius: 100px; padding: 6px 12px;
+  font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--rose);
+}
+.timer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rose); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(1.4);} }
+
+/* ═══════════════════════════
+   RIGHT COLUMN CARDS
+═══════════════════════════ */
+.right-col { display: flex; flex-direction: column; gap: 16px; }
+
+.widget-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+}
+.widget-title {
+  font-size: 14px; font-weight: 800; color: var(--ink);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
+}
+
+/* Schedule list */
+.schedule-list { display: flex; flex-direction: column; gap: 10px; }
+.schedule-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border-2); transition: background 0.18s;
+}
+.schedule-item:hover { background: var(--bg); }
+.schedule-date-box {
+  width: 38px; flex-shrink: 0; text-align: center;
+  background: var(--bg-2); border-radius: var(--r-xs);
+  padding: 6px 4px;
+}
+.schedule-day { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--ink); line-height: 1; }
+.schedule-mon { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--ink-4); margin-top: 2px; letter-spacing: 0.5px; }
+.schedule-info { flex: 1; min-width: 0; }
+.schedule-name { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.schedule-time { font-size: 11px; color: var(--ink-4); font-family: var(--mono); margin-top: 2px; }
+.schedule-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.schedule-badge.soon { background: rgba(180,83,9,0.1); color: var(--amber); }
+.schedule-badge.upcoming { background: rgba(67,56,202,0.1); color: var(--indigo); }
+
+/* Score history */
+.score-history { display: flex; flex-direction: column; gap: 10px; }
+.score-hist-item {
+  display: flex; align-items: center; gap: 10px;
+}
+.score-hist-bar-wrap { flex: 1; }
+.score-hist-label {
+  font-size: 11.5px; color: var(--ink-2); font-weight: 600;
+  margin-bottom: 4px; display: flex; justify-content: space-between;
+}
+.score-hist-label span { font-family: var(--mono); color: var(--ink-3); }
+.score-hist-track {
+  height: 6px; border-radius: 100px; background: var(--bg-2); overflow: hidden;
+}
+.score-hist-fill {
+  height: 100%; border-radius: 100px;
+  animation: barGrow 1s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes barGrow { from{width:0!important;} }
+
+/* Achievement badges */
+.badge-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+}
+.badge-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 8px; border-radius: var(--r-sm);
+  border: 1px solid var(--border-2); transition: all 0.2s;
+  cursor: default;
+}
+.badge-item:hover { background: var(--bg-2); transform: translateY(-2px); }
+.badge-item.locked { opacity: 0.35; }
+.badge-emoji { font-size: 24px; }
+.badge-name { font-size: 10px; font-weight: 700; color: var(--ink-3); text-align: center; line-height: 1.3; }
+
+/* ═══════════════════════════
+   HISTORY TABLE
+═══════════════════════════ */
+.history-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+.history-head { padding: 20px 24px 0; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: 11px; font-weight: 700;
+  color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  background: var(--bg); white-space: nowrap;
+}
+td {
+  padding: 13px 20px; font-size: 13px; color: var(--ink-2);
+  border-bottom: 1px solid var(--border-2); white-space: nowrap;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg); }
+
+.result-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 100px;
+}
+.result-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.result-badge.lulus    { background: rgba(4,120,87,0.1); color: var(--emerald); }
+.result-badge.gagal    { background: rgba(190,18,60,0.1); color: var(--rose); }
+.result-badge.pending  { background: rgba(116,116,160,0.1); color: var(--ink-3); }
+
+.score-pill {
+  display: inline-block;
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  padding: 3px 10px; border-radius: var(--r-xs);
+}
+.score-pill.high   { background: rgba(4,120,87,0.08);   color: var(--emerald); }
+.score-pill.mid    { background: rgba(67,56,202,0.08);  color: var(--indigo); }
+.score-pill.low    { background: rgba(190,18,60,0.08);  color: var(--rose); }
+
+/* Rank badge */
+.rank-num {
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  color: var(--ink-3);
+}
+.rank-num.top { color: var(--amber); font-weight: 700; }
+
+/* ═══════════════════════════
+   MOTIVATIONAL BANNER
+═══════════════════════════ */
+.moti-banner {
+  border-radius: var(--r);
+  background: linear-gradient(135deg, #0F766E 0%, #0891B2 60%, #2563EB 100%);
+  padding: 28px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; overflow: hidden; position: relative;
+}
+.moti-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.moti-text { position: relative; z-index: 1; }
+.moti-title {
+  font-family: var(--serif); font-size: clamp(18px,2.5vw,26px);
+  font-weight: 400; color: #fff; margin-bottom: 6px;
+}
+.moti-title em { font-style: italic; opacity: 0.75; }
+.moti-sub { font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 300; }
+.moti-cta {
+  display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  border-radius: var(--r-sm); padding: 11px 22px;
+  font-family: var(--font); font-size: 13.5px; font-weight: 700; color: #fff;
+  transition: all 0.2s; position: relative; z-index: 1;
+  backdrop-filter: blur(8px); cursor: pointer;
+}
+.moti-cta:hover { background: rgba(255,255,255,0.25); }
+
+/* ═══════════════════════════
+   RESPONSIVE
+═══════════════════════════ */
+@media (max-width: 1024px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .stats-strip { grid-template-columns: repeat(2,1fr); }
+  .topbar-nav { display: none; }
+  .hamburger { display: flex; }
+  .content-wrap { padding: 20px 16px 40px; }
+  .hero-banner { padding: 36px 20px 44px; }
+}
+@media (max-width: 640px) {
+  .right-col { grid-template-columns: 1fr; }
+  .hero-score { display: none; }
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .badge-grid { grid-template-columns: repeat(4,1fr); }
+  .moti-banner { flex-direction: column; align-items: flex-start; }
+  table th:nth-child(4), table td:nth-child(4),
+  table th:nth-child(5), table td:nth-child(5) { display: none; }
+}
+@media (max-width: 420px) {
+  .stats-strip { grid-template-columns: 1fr; }
+  .stat-cell { padding: 14px 18px; }
+  .badge-grid { grid-template-columns: repeat(4,1fr); gap: 6px; }
+}
+
+/* ═══════════════════════════
+   ANIMATIONS
+═══════════════════════════ */
+.anim { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+.anim.in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<canvas id="cvs"></canvas>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <a href="cat-landing.html" class="topbar-brand">
+    <div class="brand-icon">C</div>
+    <span class="brand-name">CAT System</span>
+  </a>
+
+  <nav class="topbar-nav">
+    <a class="nav-link active">
+      <span class="nav-icon">🏠</span> Beranda
+    </a>
+    <a class="nav-link">
+      <span class="nav-icon">📋</span> Ujian Saya
+      <span class="nav-pill rose">1</span>
+    </a>
+    <a class="nav-link">
+      <span class="nav-icon">📊</span> Hasil & Nilai
+    </a>
+    <a class="nav-link">
+      <span class="nav-icon">📅</span> Jadwal
+      <span class="nav-pill">3</span>
+    </a>
+    <a class="nav-link">
+      <span class="nav-icon">🏆</span> Ranking
+    </a>
+  </nav>
+
+  <div class="topbar-right">
+    <button class="topbar-notif">
+      🔔
+      <span class="notif-dot"></span>
+    </button>
+    <div class="topbar-ava" title="Ahmad Rasyid">AR</div>
+    <button class="hamburger" onclick="toggleMobileNav()">☰</button>
+  </div>
+</header>
+
+<!-- Mobile nav -->
+<div class="mobile-nav" id="mobileNav">
+  <a class="nav-link active" onclick="toggleMobileNav()"><span class="nav-icon">🏠</span> Beranda</a>
+  <a class="nav-link" onclick="toggleMobileNav()"><span class="nav-icon">📋</span> Ujian Saya</a>
+  <a class="nav-link" onclick="toggleMobileNav()"><span class="nav-icon">📊</span> Hasil & Nilai</a>
+  <a class="nav-link" onclick="toggleMobileNav()"><span class="nav-icon">📅</span> Jadwal</a>
+  <a class="nav-link" onclick="toggleMobileNav()"><span class="nav-icon">🏆</span> Ranking</a>
+</div>
+
+<div class="page">
+
+  <!-- ═══ HERO BANNER ═══ -->
+  <div class="hero-banner">
+    <div class="hero-blob hb1"></div>
+    <div class="hero-blob hb2"></div>
+    <div class="hero-blob hb3"></div>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-greeting">Dashboard Peserta</div>
+        <div class="hero-name">
+          Selamat datang,<br>
+          <em>Ahmad Rasyid</em> 👋
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-item">🏢 BKPSDM Kota Pekalongan</div>
+          <div class="hero-meta-dot"></div>
+          <div class="hero-meta-item">📋 CPNS Batch 2025</div>
+          <div class="hero-meta-dot"></div>
+          <div class="hero-meta-item">🎯 3 ujian tersisa</div>
+        </div>
+      </div>
+
+      <!-- Score ring -->
+      <div class="hero-score">
+        <div class="score-ring-wrap">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+            <circle cx="55" cy="55" r="46" fill="none"
+              stroke="url(#ringGrad)" stroke-width="8"
+              stroke-linecap="round"
+              stroke-dasharray="289"
+              stroke-dashoffset="75"
+              style="transition:stroke-dashoffset 1.5s cubic-bezier(0.22,1,0.36,1);"
+              id="ringArc"/>
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#A78BFA"/>
+                <stop offset="100%" stop-color="#67E8F9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="score-ring-center">
+            <div class="score-num" id="heroScore">0</div>
+            <div class="score-lbl">avg score</div>
+          </div>
+        </div>
+        <div class="score-title">Rata-rata nilai<br>3 ujian terakhir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STATS STRIP ═══ -->
+  <div style="padding:0 28px; max-width:1256px; margin:0 auto;">
+    <div class="stats-strip anim">
+      <div class="stat-cell">
+        <div class="stat-cell-icon" style="background:rgba(67,56,202,0.1);">📋</div>
+        <div>
+          <div class="stat-cell-num">12</div>
+          <div class="stat-cell-lbl">Ujian Selesai</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-icon" style="background:rgba(4,120,87,0.1);">✅</div>
+        <div>
+          <div class="stat-cell-num">9</div>
+          <div class="stat-cell-lbl">Lulus</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-icon" style="background:rgba(180,83,9,0.1);">⭐</div>
+        <div>
+          <div class="stat-cell-num">97.5</div>
+          <div class="stat-cell-lbl">Skor Tertinggi</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-icon" style="background:rgba(124,58,237,0.1);">🏆</div>
+        <div>
+          <div class="stat-cell-num">#1</div>
+          <div class="stat-cell-lbl">Ranking Saat Ini</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <div class="content-wrap">
+
+    <!-- MOTIVATIONAL BANNER -->
+    <div class="moti-banner anim">
+      <div class="moti-text">
+        <div class="moti-title">Kamu berada di peringkat <em>#1</em> minggu ini — pertahankan! 🔥</div>
+        <div class="moti-sub">Masih ada 3 ujian simulasi yang bisa meningkatkan skormu sebelum seleksi resmi.</div>
+      </div>
+      <button class="moti-cta">Latihan Sekarang →</button>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- LEFT: Exam cards -->
+      <div>
+        <!-- Ongoing -->
+        <div class="sec-head">
+          <div class="sec-title">
+            <span class="sec-title-dot" style="background:var(--rose);box-shadow:0 0 6px rgba(190,18,60,0.5);"></span>
+            Sedang Berlangsung
+          </div>
+        </div>
+        <div class="exam-stack anim">
+
+          <div class="exam-card" style="--card-color:#BE123C; border-color:rgba(190,18,60,0.15); background:linear-gradient(135deg,#fff 0%,rgba(190,18,60,0.02) 100%);">
+            <div class="exam-card-top">
+              <div>
+                <div class="exam-card-meta" style="margin-bottom:8px;">
+                  <span class="exam-type-badge" style="--badge-bg:rgba(190,18,60,0.1);--badge-color:var(--rose);">Official</span>
+                  <span class="exam-difficulty">⚡ Sedang · 110 soal</span>
+                </div>
+                <div class="exam-title">SKD CPNS 2025 — Paket A</div>
+                <div class="exam-desc">Seleksi Kompetensi Dasar meliputi TWK, TIU, dan TKP. Pastikan kamu dalam kondisi prima!</div>
+              </div>
+              <div class="timer-chip">
+                <span class="timer-dot"></span>
+                <span id="liveTimer">01:23:47</span>
+              </div>
+            </div>
+
+            <div class="exam-progress">
+              <div class="prog-label">
+                <span>Progress pengerjaan</span>
+                <span style="font-family:var(--mono);font-weight:600;color:var(--ink-2);">42 / 110</span>
+              </div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:38%;"></div>
+              </div>
+            </div>
+
+            <div class="exam-info-row">
+              <div class="exam-info-item"><span class="exam-info-icon">⏱</span> 90 menit</div>
+              <div class="exam-info-item"><span class="exam-info-icon">🎯</span> Passing: 65</div>
+              <div class="exam-info-item"><span class="exam-info-icon">📍</span> Soal ke-21 (TWK)</div>
+            </div>
+
+            <div class="exam-card-footer">
+              <div class="exam-footer-left">
+                <span class="exam-tag">TWK · TIU · TKP</span>
+                <span class="exam-tag">Acak</span>
+              </div>
+              <button class="btn-continue">▶ Lanjutkan Ujian</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Available exams -->
+        <div class="sec-head" style="margin-top:28px;">
+          <div class="sec-title">
+            <span class="sec-title-dot" style="background:var(--indigo);"></span>
+            Ujian Tersedia
+          </div>
+          <a class="sec-link">Lihat semua →</a>
+        </div>
+        <div class="exam-stack anim">
+
+          <div class="exam-card" style="--card-color:#4338CA;">
+            <div class="exam-card-top">
+              <div>
+                <div class="exam-card-meta" style="margin-bottom:8px;">
+                  <span class="exam-type-badge" style="--badge-bg:rgba(67,56,202,0.1);--badge-color:var(--indigo);">Simulasi</span>
+                  <span class="exam-difficulty">🟡 Mudah · 60 soal</span>
+                </div>
+                <div class="exam-title">TKD PPPK Guru — Paket Latihan B</div>
+                <div class="exam-desc">Latihan soal kompetensi teknis dan pedagogik khusus guru. Tersedia pembahasan setelah selesai.</div>
+              </div>
+            </div>
+            <div class="exam-info-row">
+              <div class="exam-info-item"><span class="exam-info-icon">⏱</span> 60 menit</div>
+              <div class="exam-info-item"><span class="exam-info-icon">🎯</span> Passing: 70</div>
+              <div class="exam-info-item"><span class="exam-info-icon">📖</span> Ada pembahasan</div>
+              <div class="exam-info-item"><span class="exam-info-icon">🔄</span> Maks 3× coba</div>
+            </div>
+            <div class="exam-card-footer">
+              <div class="exam-footer-left">
+                <span class="exam-tag">Kompetensi Teknis</span>
+                <span class="exam-tag">Pedagogik</span>
+              </div>
+              <button class="btn-start" style="background:var(--indigo);box-shadow:0 4px 14px rgba(67,56,202,0.3);">Mulai Ujian →</button>
+            </div>
+          </div>
+
+          <div class="exam-card" style="--card-color:#0F766E;">
+            <div class="exam-card-top">
+              <div>
+                <div class="exam-card-meta" style="margin-bottom:8px;">
+                  <span class="exam-type-badge" style="--badge-bg:rgba(15,118,110,0.1);--badge-color:var(--teal);">Latihan</span>
+                  <span class="exam-difficulty">🔴 Sulit · 80 soal</span>
+                </div>
+                <div class="exam-title">Simulasi TWK — Wawasan Kebangsaan Lanjutan</div>
+                <div class="exam-desc">Soal-soal tingkat lanjut Pancasila, UUD 1945, NKRI, dan Bhinneka Tunggal Ika dengan tingkat kesulitan tinggi.</div>
+              </div>
+            </div>
+            <div class="exam-info-row">
+              <div class="exam-info-item"><span class="exam-info-icon">⏱</span> 75 menit</div>
+              <div class="exam-info-item"><span class="exam-info-icon">🎯</span> Passing: 75</div>
+              <div class="exam-info-item"><span class="exam-info-icon">♾</span> Tidak terbatas</div>
+            </div>
+            <div class="exam-card-footer">
+              <div class="exam-footer-left">
+                <span class="exam-tag">Pancasila</span>
+                <span class="exam-tag">UUD 1945</span>
+                <span class="exam-tag">NKRI</span>
+              </div>
+              <button class="btn-start" style="background:var(--teal);box-shadow:0 4px 14px rgba(15,118,110,0.3);">Mulai Ujian →</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT COL -->
+      <div class="right-col">
+
+        <!-- Jadwal -->
+        <div class="widget-card anim">
+          <div class="widget-title">📅 Jadwal Mendatang</div>
+          <div class="schedule-list">
+            <div class="schedule-item">
+              <div class="schedule-date-box" style="background:rgba(180,83,9,0.08);">
+                <div class="schedule-day" style="color:var(--amber);">20</div>
+                <div class="schedule-mon" style="color:var(--amber);">Jun</div>
+              </div>
+              <div class="schedule-info">
+                <div class="schedule-name">SKD CPNS Paket B</div>
+                <div class="schedule-time">08:00 — 09:30 WIB</div>
+              </div>
+              <span class="schedule-badge soon">2 hari lagi</span>
+            </div>
+            <div class="schedule-item">
+              <div class="schedule-date-box">
+                <div class="schedule-day">25</div>
+                <div class="schedule-mon">Jun</div>
+              </div>
+              <div class="schedule-info">
+                <div class="schedule-name">TIU — Verbal & Numerik</div>
+                <div class="schedule-time">10:00 — 11:00 WIB</div>
+              </div>
+              <span class="schedule-badge upcoming">7 hari</span>
+            </div>
+            <div class="schedule-item">
+              <div class="schedule-date-box">
+                <div class="schedule-day">30</div>
+                <div class="schedule-mon">Jun</div>
+              </div>
+              <div class="schedule-info">
+                <div class="schedule-name">TKP Final Assessment</div>
+                <div class="schedule-time">13:00 — 14:30 WIB</div>
+              </div>
+              <span class="schedule-badge upcoming">12 hari</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skor per kategori -->
+        <div class="widget-card anim">
+          <div class="widget-title">📊 Nilai per Kategori</div>
+          <div class="score-history">
+            <div class="score-hist-item">
+              <div class="score-hist-bar-wrap">
+                <div class="score-hist-label">TWK <span>82 / 100</span></div>
+                <div class="score-hist-track">
+                  <div class="score-hist-fill" style="width:82%;background:linear-gradient(90deg,var(--indigo),#818CF8);"></div>
+                </div>
+              </div>
+            </div>
+            <div class="score-hist-item">
+              <div class="score-hist-bar-wrap">
+                <div class="score-hist-label">TIU <span>78 / 100</span></div>
+                <div class="score-hist-track">
+                  <div class="score-hist-fill" style="width:78%;background:linear-gradient(90deg,var(--teal),#2DD4BF);"></div>
+                </div>
+              </div>
+            </div>
+            <div class="score-hist-item">
+              <div class="score-hist-bar-wrap">
+                <div class="score-hist-label">TKP <span>91 / 100</span></div>
+                <div class="score-hist-track">
+                  <div class="score-hist-fill" style="width:91%;background:linear-gradient(90deg,var(--emerald),#34D399);"></div>
+                </div>
+              </div>
+            </div>
+            <div class="score-hist-item">
+              <div class="score-hist-bar-wrap">
+                <div class="score-hist-label">Verbal <span>70 / 100</span></div>
+                <div class="score-hist-track">
+                  <div class="score-hist-fill" style="width:70%;background:linear-gradient(90deg,var(--amber),#FCD34D);"></div>
+                </div>
+              </div>
+            </div>
+            <div class="score-hist-item">
+              <div class="score-hist-bar-wrap">
+                <div class="score-hist-label">Numerik <span>85 / 100</span></div>
+                <div class="score-hist-track">
+                  <div class="score-hist-fill" style="width:85%;background:linear-gradient(90deg,var(--violet),#A78BFA);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="widget-card anim">
+          <div class="widget-title">🎖️ Pencapaian</div>
+          <div class="badge-grid">
+            <div class="badge-item">
+              <div class="badge-emoji">🥇</div>
+              <div class="badge-name">Ranking #1</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-emoji">🔥</div>
+              <div class="badge-name">Streak 7 Hari</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-emoji">💯</div>
+              <div class="badge-name">Skor Sempurna</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-emoji">⚡</div>
+              <div class="badge-name">Fastest Finish</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-emoji">🎯</div>
+              <div class="badge-name">10 Lulus</div>
+            </div>
+            <div class="badge-item locked">
+              <div class="badge-emoji">👑</div>
+              <div class="badge-name">Juara Umum</div>
+            </div>
+            <div class="badge-item locked">
+              <div class="badge-emoji">🌟</div>
+              <div class="badge-name">50 Ujian</div>
+            </div>
+            <div class="badge-item locked">
+              <div class="badge-emoji">🚀</div>
+              <div class="badge-name">Nilai 100</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HISTORY TABLE -->
+    <div class="history-card anim">
+      <div class="history-head sec-head">
+        <div class="sec-title">
+          <span class="sec-title-dot" style="background:var(--violet);"></span>
+          Riwayat Ujian
+        </div>
+        <a class="sec-link">Lihat semua →</a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama Ujian</th>
+              <th>Tanggal</th>
+              <th>Skor</th>
+              <th>Ranking</th>
+              <th>Durasi</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:var(--ink);">Simulasi SKD CPNS — Paket X</strong></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">14 Jun 2025</td>
+              <td><span class="score-pill high">97.5</span></td>
+              <td><span class="rank-num top">🥇 #1</span></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">72 menit</td>
+              <td><span class="result-badge lulus">Lulus</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">TKD PPPK Guru Batch 1</strong></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">10 Jun 2025</td>
+              <td><span class="score-pill high">89.0</span></td>
+              <td><span class="rank-num top">🥈 #2</span></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">58 menit</td>
+              <td><span class="result-badge lulus">Lulus</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">TWK Latihan — Kebangsaan</strong></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">07 Jun 2025</td>
+              <td><span class="score-pill mid">76.5</span></td>
+              <td><span class="rank-num">#5</span></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">65 menit</td>
+              <td><span class="result-badge lulus">Lulus</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">TIU — Verbal & Numerik Sprint</strong></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">03 Jun 2025</td>
+              <td><span class="score-pill low">58.0</span></td>
+              <td><span class="rank-num">#18</span></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">60 menit</td>
+              <td><span class="result-badge gagal">Tidak Lulus</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">Essay Kompetensi Teknis IT</strong></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">01 Jun 2025</td>
+              <td><span class="score-pill mid">—</span></td>
+              <td><span class="rank-num">—</span></td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--ink-3);">50 menit</td>
+              <td><span class="result-badge pending">Menunggu Nilai</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- end content-wrap -->
+</div><!-- end page -->
+
+<script>
+/* ─── PARTICLE CANVAS ─── */
+(function(){
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+  let W, H;
+  const mouse = {x:-9999, y:-9999};
+  const COLS = [
+    'rgba(67,56,202,', 'rgba(8,145,178,',
+    'rgba(91,33,182,', 'rgba(4,120,87,'
+  ];
+
+  function resize(){ W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
+  window.addEventListener('mouseleave', ()=>{ mouse.x=-9999; mouse.y=-9999; });
+
+  class P {
+    constructor(){this.reset();}
+    reset(){
+      this.x  = Math.random()*W;
+      this.y  = Math.random()*H;
+      this.vx = (Math.random()-.5)*.5;
+      this.vy = (Math.random()-.5)*.5;
+      this.r  = Math.random()*2+.4;
+      this.a  = Math.random()*.2+.05;
+      this.col = COLS[Math.floor(Math.random()*COLS.length)];
+    }
+    update(){
+      const dx = mouse.x-this.x, dy = mouse.y-this.y;
+      const d  = Math.sqrt(dx*dx+dy*dy);
+      if(d<90){ const f=(90-d)/90*.6; this.vx -= dx/d*f; this.vy -= dy/d*f; }
+      this.vx *= .98; this.vy *= .98;
+      this.x += this.vx; this.y += this.vy;
+      if(this.x<0) this.x=W; if(this.x>W) this.x=0;
+      if(this.y<0) this.y=H; if(this.y>H) this.y=0;
+    }
+    draw(){
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle = this.col+this.a+')'; ctx.fill();
+    }
+  }
+
+  const pts = Array.from({length:70}, ()=>new P());
+
+  function lines(){
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<110){
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x,pts[i].y);
+          ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle=`rgba(67,56,202,${.07*(1-d/110)})`;
+          ctx.lineWidth=.7; ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.update();p.draw();});
+    lines();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ─── HERO SCORE COUNT UP ─── */
+(function(){
+  const el = document.getElementById('heroScore');
+  const target = 74.2;
+  let v = 0;
+  const t = setInterval(()=>{
+    v = Math.min(v + 1.8, target);
+    el.textContent = v.toFixed(1);
+    if(v >= target) clearInterval(t);
+  }, 24);
+})();
+
+/* ─── LIVE TIMER ─── */
+(function(){
+  const el = document.getElementById('liveTimer');
+  let s = 5027;
+  setInterval(()=>{
+    if(s<=0) return; s--;
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sc=s%60;
+    el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+  }, 1000);
+})();
+
+/* ─── SCROLL ANIMATIONS ─── */
+(function(){
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach((e,i)=>{
+      if(e.isIntersecting){
+        setTimeout(()=>e.target.classList.add('in'), i*80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, {threshold:.1});
+  document.querySelectorAll('.anim').forEach(el=>obs.observe(el));
+})();
+
+/* ─── NAV ACTIVE ─── */
+document.querySelectorAll('.nav-link').forEach(a=>{
+  a.addEventListener('click', function(){
+    document.querySelectorAll('.nav-link').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* ─── MOBILE NAV ─── */
+function toggleMobileNav(){
+  document.getElementById('mobileNav').classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\Dashboard\PesertaDashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Dashboard Peserta
+    Route::get('/dashboard/peserta', [PesertaDashboardController::class, 'index'])
+        ->middleware('role:peserta')
+        ->name('dashboard.peserta');
 
     // Kategori
     Route::middleware('role:admin')->group(function () {
