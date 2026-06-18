@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { ParticipantItem } from './DetailDrawer';
 
 interface ParticipantFormModalProps {
@@ -19,6 +19,8 @@ export default function ParticipantFormModal({
     showToast,
 }: ParticipantFormModalProps) {
     const isEdit = !!editParticipant;
+    const { auth } = usePage<any>().props;
+    const user = auth?.user;
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -171,20 +173,9 @@ export default function ParticipantFormModal({
                             </div>
                         </div>
 
-                        <div className="form-grid fg-2">
+                        {user?.role === 'admin' ? (
                             <div className="form-field">
-                                <label className="form-label">Instansi / OPD</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Dinas Pendidikan"
-                                    value={data.instansi}
-                                    onChange={(e) => setData('instansi', e.target.value)}
-                                />
-                                {errors.instansi && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.instansi}</span>}
-                            </div>
-                            <div className="form-field">
-                                <label className="form-label">Golongan / Jabatan</label>
+                                <label className="form-label">Golongan / Jabatan (Opsional)</label>
                                 <input
                                     type="text"
                                     className="form-input"
@@ -194,7 +185,32 @@ export default function ParticipantFormModal({
                                 />
                                 {errors.jabatan && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.jabatan}</span>}
                             </div>
-                        </div>
+                        ) : (
+                            <div className="form-grid fg-2">
+                                <div className="form-field">
+                                    <label className="form-label">Instansi / OPD</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Dinas Pendidikan"
+                                        value={data.instansi}
+                                        onChange={(e) => setData('instansi', e.target.value)}
+                                    />
+                                    {errors.instansi && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.instansi}</span>}
+                                </div>
+                                <div className="form-field">
+                                    <label className="form-label">Golongan / Jabatan (Opsional)</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Guru Ahli Muda"
+                                        value={data.jabatan}
+                                        onChange={(e) => setData('jabatan', e.target.value)}
+                                    />
+                                    {errors.jabatan && <span className="form-hint" style={{ color: 'var(--rose)' }}>{errors.jabatan}</span>}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Status selection */}
                         <div className="form-field">

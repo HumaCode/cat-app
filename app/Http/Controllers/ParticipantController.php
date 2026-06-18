@@ -127,6 +127,10 @@ class ParticipantController extends Controller
             'status' => 'required|in:aktif,nonaktif,pending',
         ]);
 
+        if ($user->role === 'admin') {
+            $validated['instansi'] = $user->institution?->name;
+        }
+
         $validated['institution_id'] = $user->institution_id;
         $validated['username'] = explode('@', $validated['email'])[0];
         $validated['password'] = bcrypt('password'); // Default password
@@ -163,6 +167,8 @@ class ParticipantController extends Controller
         $participant = User::findOrFail($id);
         \Illuminate\Support\Facades\Gate::authorize('update', $participant);
 
+        $user = $request->user();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'nip_nik' => 'nullable|string|max:50',
@@ -172,6 +178,10 @@ class ParticipantController extends Controller
             'jabatan' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,nonaktif,pending',
         ]);
+
+        if ($user->role === 'admin') {
+            $validated['instansi'] = $user->institution?->name;
+        }
 
         $this->userService->updateParticipant($id, $validated);
 

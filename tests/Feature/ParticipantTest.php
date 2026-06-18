@@ -87,6 +87,7 @@ test('admin can create a participant within their institution', function () {
         'email' => 'rina@example.com',
         'role' => 'peserta',
         'institution_id' => $this->institutionA->id,
+        'instansi' => 'Kementerian Kominfo',
     ]);
 });
 
@@ -116,6 +117,7 @@ test('admin can update their own participant', function () {
         'id' => $this->pesertaA->id,
         'name' => 'Peserta Kominfo Diubah',
         'status' => 'nonaktif',
+        'instansi' => 'Kementerian Kominfo',
     ]);
 });
 
