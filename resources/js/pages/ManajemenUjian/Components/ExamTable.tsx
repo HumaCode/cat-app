@@ -154,7 +154,7 @@ export default function ExamTable({
                                                 <button
                                                     className="action-btn report"
                                                     title="Laporan"
-                                                    onClick={() => onActionTriggered('Membuka laporan nilai...', 'success')}
+                                                    onClick={() => router.visit(route('ujian.report', e.id))}
                                                 >
                                                     <i className="bi bi-bar-chart" style={{ fontSize: '14px' }}></i>
                                                 </button>

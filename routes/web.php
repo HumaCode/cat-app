@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/ujian/{id}', [ExamController::class, 'update'])->name('ujian.update');
     Route::delete('/ujian/{id}', [ExamController::class, 'destroy'])->name('ujian.destroy');
     Route::get('/ujian/{id}/monitor', [ExamController::class, 'monitor'])->name('ujian.monitor');
+    Route::get('/ujian/{id}/laporan', [ExamController::class, 'report'])->name('ujian.report');
 
     // Peserta Ujian
     Route::get('/ujian/{id}/peserta', [ExamController::class, 'pesertaList'])->name('ujian.peserta.list');

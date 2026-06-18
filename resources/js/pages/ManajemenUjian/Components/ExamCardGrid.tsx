@@ -132,7 +132,7 @@ export default function ExamCardGrid({
                                     <button
                                         className="action-btn report"
                                         title="Laporan"
-                                        onClick={() => onActionTriggered('Laporan nilai...', 'success')}
+                                        onClick={() => router.visit(route('ujian.report', e.id))}
                                     >
                                         <i className="bi bi-bar-chart" style={{ fontSize: '13px' }}></i>
                                     </button>

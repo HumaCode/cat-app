@@ -552,15 +552,26 @@ export default function ExamShow({ exam, categories = [], participants = [], ava
                                             <div style={{ fontSize: '11.5px', color: 'var(--ink-4)' }}>Data dasar dan jadwal ujian</div>
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="btn-modal confirm"
-                                        style={{ background: 'var(--teal)', fontSize: '12.5px', padding: '6px 14px', borderRadius: 'var(--r-xs)', flex: 'none', width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
-                                        onClick={() => router.visit(route('ujian.monitor', exam.id))}
-                                    >
-                                        <i className="bi bi-display" style={{ fontSize: '13px' }}></i>
-                                        <span>Monitor Live</span>
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                                        <button
+                                            type="button"
+                                            className="btn-modal confirm"
+                                            style={{ background: 'var(--teal)', fontSize: '12.5px', padding: '6px 14px', borderRadius: 'var(--r-xs)', flex: 'none', width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                            onClick={() => router.visit(route('ujian.monitor', exam.id))}
+                                        >
+                                            <i className="bi bi-display" style={{ fontSize: '13px' }}></i>
+                                            <span>Monitor Live</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-modal confirm"
+                                            style={{ background: 'var(--indigo)', fontSize: '12.5px', padding: '6px 14px', borderRadius: 'var(--r-xs)', flex: 'none', width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                            onClick={() => router.visit(route('ujian.report', exam.id))}
+                                        >
+                                            <i className="bi bi-bar-chart" style={{ fontSize: '13px' }}></i>
+                                            <span>Laporan Hasil</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div style={{ padding: '6px 24px 20px' }}>
                                     <InfoRow label="Judul Ujian" value={<strong>{exam.title}</strong>} />
