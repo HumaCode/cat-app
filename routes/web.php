@@ -49,12 +49,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Bank Soal
-    Route::get('/bank-soal', [QuestionBankController::class, 'index'])->name('bank-soal.index');
-    Route::post('/bank-soal', [QuestionBankController::class, 'store'])->name('bank-soal.store');
-    Route::put('/bank-soal/{id}', [QuestionBankController::class, 'update'])->name('bank-soal.update');
-    Route::delete('/bank-soal/{id}', [QuestionBankController::class, 'destroy'])->name('bank-soal.destroy');
-    Route::post('/bank-soal/categories', [QuestionBankController::class, 'storeCategory'])->name('bank-soal.categories.store');
-    Route::post('/bank-soal/bulk', [QuestionBankController::class, 'bulkAction'])->name('bank-soal.bulk');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/bank-soal', [QuestionBankController::class, 'index'])->name('bank-soal.index');
+        Route::post('/bank-soal', [QuestionBankController::class, 'store'])->name('bank-soal.store');
+        Route::put('/bank-soal/{id}', [QuestionBankController::class, 'update'])->name('bank-soal.update');
+        Route::delete('/bank-soal/{id}', [QuestionBankController::class, 'destroy'])->name('bank-soal.destroy');
+        Route::post('/bank-soal/categories', [QuestionBankController::class, 'storeCategory'])->name('bank-soal.categories.store');
+        Route::post('/bank-soal/bulk', [QuestionBankController::class, 'bulkAction'])->name('bank-soal.bulk');
+    });
 
     // Manajemen Ujian
     Route::get('/ujian', [ExamController::class, 'index'])->name('ujian.index');

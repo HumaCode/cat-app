@@ -21,6 +21,8 @@ class QuestionBankController extends Controller
      */
     public function index(Request $request): Response
     {
+        \Illuminate\Support\Facades\Gate::authorize('viewAny', \App\Models\Question::class);
+
         $user = $request->user();
         $institutionId = $user->institution_id;
 
@@ -59,6 +61,8 @@ class QuestionBankController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Gate::authorize('create', \App\Models\Question::class);
+
         $user = $request->user();
         
         $rules = [
@@ -111,13 +115,8 @@ class QuestionBankController extends Controller
     {
         $user = $request->user();
 
-        // Ownership guard — non-dev users may only edit their own questions
         $question = \App\Models\Question::findOrFail($id);
-        if ($user->role !== 'dev' && $user->username !== 'dev') {
-            if ($question->user_id !== null && $question->user_id !== $user->id) {
-                abort(403, 'Anda tidak memiliki izin untuk mengedit soal ini.');
-            }
-        }
+        \Illuminate\Support\Facades\Gate::authorize('update', $question);
 
         // Handle method spoofing if client sent a POST with _method=PUT
         $rules = [
@@ -179,11 +178,7 @@ class QuestionBankController extends Controller
         $user = $request->user();
         $question = \App\Models\Question::findOrFail($id);
 
-        if ($user->role !== 'dev' && $user->username !== 'dev') {
-            if ($question->user_id !== null && $question->user_id !== $user->id) {
-                abort(403, 'Anda tidak memiliki izin untuk menghapus soal ini.');
-            }
-        }
+        \Illuminate\Support\Facades\Gate::authorize('delete', $question);
 
         $this->questionService->deleteQuestion($id);
         return redirect()->back()->with('success', 'Soal berhasil dihapus.');
@@ -227,12 +222,10 @@ class QuestionBankController extends Controller
 
         $ids = $validated['ids'];
 
-        // Non-dev users can only act on their own questions
+        // Non-dev users can only act on questions belonging to their own institution
         if ($user->role !== 'dev' && $user->username !== 'dev') {
             $ids = \App\Models\Question::whereIn('id', $ids)
-                ->where(function ($q) use ($user) {
-                    $q->where('user_id', $user->id)->orWhereNull('user_id');
-                })
+                ->where('institution_id', $user->institution_id)
                 ->pluck('id')
                 ->toArray();
         }
