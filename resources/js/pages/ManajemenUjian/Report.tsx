@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { ExamItem } from './Components/types';
@@ -48,6 +48,12 @@ export default function Report({ exam, participants = [] }: ReportProps) {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'lulus' | 'gagal' | 'tidak_hadir'>('all');
     const [selectedParticipant, setSelectedParticipant] = useState<ParticipantReport | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const perPage = 10;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search, statusFilter]);
 
     const seksi = exam.settings?.seksi || [];
     const totalSoal = seksi.reduce((sum, s) => sum + (s.soal_count || 0), 0) || 100;
@@ -94,6 +100,11 @@ export default function Report({ exam, participants = [] }: ReportProps) {
         if (statusFilter === 'tidak_hadir') return !p.is_present;
         return true;
     });
+
+    const totalFiltered = filteredParticipants.length;
+    const totalPages = Math.ceil(totalFiltered / perPage) || 1;
+    const startIndex = (currentPage - 1) * perPage;
+    const paginatedParticipants = filteredParticipants.slice(startIndex, startIndex + perPage);
 
     const handleExport = (type: 'Excel' | 'PDF') => {
         alert(`Berhasil mengekspor Laporan Hasil Ujian "${exam.title}" ke format ${type}. File sedang diunduh.`);
@@ -343,6 +354,7 @@ export default function Report({ exam, participants = [] }: ReportProps) {
                         <table>
                             <thead>
                                 <tr>
+                                    <th style={{ width: '50px', textAlign: 'center' }}>No</th>
                                     <th>Nama Peserta / NIP</th>
                                     <th>Status Hadir</th>
                                     {seksi.map((sec, i) => (
@@ -355,18 +367,21 @@ export default function Report({ exam, participants = [] }: ReportProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredParticipants.length === 0 ? (
+                                {paginatedParticipants.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6 + seksi.length}>
+                                        <td colSpan={7 + seksi.length}>
                                             <div style={{ padding: '40px', textTransform: 'none', textAlign: 'center', color: 'var(--ink-4)' }}>
                                                 Tidak ada data peserta hasil ujian yang sesuai kriteria filter.
                                             </div>
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredParticipants.map(p => {
+                                    paginatedParticipants.map((p, index) => {
                                         return (
                                             <tr key={p.id}>
+                                                <td style={{ textAlign: 'center', color: 'var(--ink-4)', fontWeight: 600, fontSize: '12.5px' }}>
+                                                    {startIndex + index + 1}
+                                                </td>
                                                 <td>
                                                     <div style={{ fontWeight: 700, color: 'var(--ink)' }}>{p.name}</div>
                                                     <div style={{ fontSize: '11px', color: 'var(--ink-4)', marginTop: '2px' }}>
@@ -442,6 +457,44 @@ export default function Report({ exam, participants = [] }: ReportProps) {
                             </tbody>
                         </table>
                     </div>
+                    {/* Pagination Controls */}
+                    {totalFiltered > 0 && (
+                        <div className="pagination-row" style={{ borderTop: '1px solid var(--border-2)', padding: '12px 20px' }}>
+                            <div className="pagination-info">
+                                Menampilkan <strong>{startIndex + 1}–{Math.min(startIndex + perPage, totalFiltered)}</strong> dari <strong>{totalFiltered}</strong> peserta
+                            </div>
+                            <div className="pagination-btns">
+                                <button
+                                    type="button"
+                                    className="page-btn"
+                                    disabled={currentPage === 1}
+                                    style={{ opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                >
+                                    ←
+                                </button>
+                                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        type="button"
+                                        className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="page-btn"
+                                    disabled={currentPage === totalPages}
+                                    style={{ opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                >
+                                    →
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── ATTEMPT SHEET DETAIL MODAL ── */}

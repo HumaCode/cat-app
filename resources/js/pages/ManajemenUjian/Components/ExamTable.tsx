@@ -54,6 +54,7 @@ export default function ExamTable({
                 <table>
                     <thead>
                         <tr>
+                            <th style={{ width: '50px', textAlign: 'center' }}>No</th>
                             <th>Nama Ujian</th>
                             <th>Tipe</th>
                             <th>Peserta</th>
@@ -67,7 +68,7 @@ export default function ExamTable({
                     <tbody>
                         {data.length === 0 ? (
                             <tr>
-                                <td colSpan={8}>
+                                <td colSpan={9}>
                                     <div className="empty-state">
                                         <div className="empty-icon">📭</div>
                                         <div className="empty-title">Tidak ada ujian ditemukan</div>
@@ -76,7 +77,7 @@ export default function ExamTable({
                                 </td>
                             </tr>
                         ) : (
-                            data.map((e) => {
+                            data.map((e, index) => {
                                 const m = getMockStats(e.title);
                                 const pct = m.total ? Math.round((m.done / m.total) * 100) : 0;
                                 const dateFormatted = e.start_time
@@ -90,6 +91,9 @@ export default function ExamTable({
 
                                 return (
                                     <tr key={e.id}>
+                                        <td style={{ textAlign: 'center', color: 'var(--ink-4)', fontWeight: 600, fontSize: '12.5px' }}>
+                                            {(exams.from || 1) + index}
+                                        </td>
                                         <td>
                                             <div className="exam-name">{e.title}</div>
                                             <div className="exam-meta">
@@ -176,7 +180,7 @@ export default function ExamTable({
             </div>
 
             {/* Pagination Controls */}
-            {exams.links && exams.links.length > 3 && (
+            {exams.links && exams.links.length > 0 && (
                 <div className="pagination-row">
                     <div className="pagination-info">
                         Menampilkan <strong>{exams.from || 0}–{exams.to || 0}</strong> dari <strong>{exams.total}</strong> ujian
