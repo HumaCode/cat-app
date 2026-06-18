@@ -68,6 +68,7 @@ export default function ExamIndex() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formTarget, setFormTarget] = useState<ExamItem | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<ExamItem | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | '' }>({
         show: false,
@@ -139,8 +140,14 @@ export default function ExamIndex() {
         setIsFormOpen(true);
     };
 
+    const handleCloseDeleteModal = () => {
+        if (isDeleting) return;
+        setDeleteTarget(null);
+    };
+
     const handleDeleteConfirm = () => {
         if (!deleteTarget) return;
+        setIsDeleting(true);
 
         router.delete(route('ujian.destroy', deleteTarget.id), {
             onSuccess: () => {
@@ -149,6 +156,9 @@ export default function ExamIndex() {
             },
             onError: () => {
                 triggerToast('Gagal menghapus ujian.', 'error');
+            },
+            onFinish: () => {
+                setIsDeleting(false);
             }
         });
     };
@@ -384,7 +394,7 @@ export default function ExamIndex() {
 
             {/* Confirm Delete Modal */}
             {deleteTarget && isMounted && createPortal(
-                <div className="modal-overlay open" onClick={() => setDeleteTarget(null)}>
+                <div className="modal-overlay open" onClick={handleCloseDeleteModal}>
                     <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                         <div className="modal-icon-wrap" style={{ background: 'var(--rose-s)', color: 'var(--rose)' }}>🗑️</div>
                         <h3 className="modal-title">Hapus Ujian?</h3>
@@ -392,8 +402,28 @@ export default function ExamIndex() {
                             Apakah Anda yakin ingin menghapus ujian <strong>{deleteTarget.title}</strong>? Tindakan ini permanen dan akan menghapus seluruh data progres peserta terkait.
                         </p>
                         <div className="modal-actions" style={{ marginTop: '20px' }}>
-                            <button className="btn-modal cancel" onClick={() => setDeleteTarget(null)}>Batal</button>
-                            <button className="btn-modal confirm" style={{ background: 'var(--rose)' }} onClick={handleDeleteConfirm}>Ya, Hapus</button>
+                            <button 
+                                className="btn-modal cancel" 
+                                disabled={isDeleting} 
+                                onClick={handleCloseDeleteModal}
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                className="btn-modal confirm" 
+                                style={{ background: 'var(--rose)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }} 
+                                disabled={isDeleting} 
+                                onClick={handleDeleteConfirm}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <span className="spinner" style={{ margin: 0 }} />
+                                        <span>sedang proses</span>
+                                    </>
+                                ) : (
+                                    <span>Ya, Hapus</span>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>,
