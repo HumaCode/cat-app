@@ -30,6 +30,14 @@ export default function KategoriIndex() {
     const [filterType, setFilterType]     = useState<'all' | 'parent' | 'child'>('all');
     const [filterOwner, setFilterOwner]   = useState<'all' | 'mine' | 'global'>('all');
 
+    // Pagination states
+    const [currentPage, setCurrentPage]   = useState(1);
+    const perPage = 10;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search, filterType, filterOwner]);
+
     // Toast
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
         show: false, message: '', type: 'success',
@@ -81,6 +89,11 @@ export default function KategoriIndex() {
             cat.user_id === null;
         return matchSearch && matchType && matchOwner;
     });
+
+    const totalFiltered = displayed.length;
+    const totalPages = Math.ceil(totalFiltered / perPage) || 1;
+    const startIndex = (currentPage - 1) * perPage;
+    const paginatedCategories = displayed.slice(startIndex, startIndex + perPage);
 
     return (
         <AuthenticatedLayout>
@@ -253,17 +266,73 @@ export default function KategoriIndex() {
                 {/* Table Card */}
                 <div className="kat-table-wrap">
                     <KategoriTable
-                        categories={displayed}
+                        categories={paginatedCategories}
                         onEdit={openEdit}
                         onDelete={openDel}
                         currentUserId={user.id}
                         userRole={user.role}
+                        startIndex={startIndex}
+                        allCategories={categories}
                     />
 
-                    {/* Table footer info */}
-                    {displayed.length > 0 && (
+                    {/* Table footer info & pagination */}
+                    {totalFiltered > 0 && (
                         <div className="kat-pagination">
-                            <span>Menampilkan {displayed.length} dari {categories.length} kategori</span>
+                            <span>
+                                Menampilkan {totalFiltered > 0 ? startIndex + 1 : 0} - {Math.min(startIndex + perPage, totalFiltered)} dari {totalFiltered} kategori
+                            </span>
+                            {totalPages > 1 && (
+                                <div className="kat-page-btns">
+                                    <button 
+                                        type="button" 
+                                        className="kat-page-btn" 
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(1)}
+                                        title="Halaman Pertama"
+                                    >
+                                        «
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className="kat-page-btn" 
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(prev => prev - 1)}
+                                        title="Halaman Sebelumnya"
+                                    >
+                                        ‹
+                                    </button>
+                                    
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            type="button"
+                                            className={`kat-page-btn ${currentPage === page ? 'active' : ''}`}
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+
+                                    <button 
+                                        type="button" 
+                                        className="kat-page-btn" 
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        title="Halaman Berikutnya"
+                                    >
+                                        ›
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className="kat-page-btn" 
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(totalPages)}
+                                        title="Halaman Terakhir"
+                                    >
+                                        »
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

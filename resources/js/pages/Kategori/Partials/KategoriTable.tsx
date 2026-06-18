@@ -7,9 +7,11 @@ interface Props {
     onDelete: (cat: CategoryItem) => void;
     currentUserId: string;
     userRole: string;
+    startIndex?: number;
+    allCategories?: CategoryItem[];
 }
 
-export default function KategoriTable({ categories, onEdit, onDelete, currentUserId, userRole }: Props) {
+export default function KategoriTable({ categories, onEdit, onDelete, currentUserId, userRole, startIndex = 0, allCategories }: Props) {
     const isDev = userRole === 'dev';
 
     const canModify = (cat: CategoryItem) =>
@@ -17,7 +19,8 @@ export default function KategoriTable({ categories, onEdit, onDelete, currentUse
 
     // Build parent lookup map
     const parentMap: Record<string, string> = {};
-    categories.forEach(c => { parentMap[c.id] = c.name; });
+    const lookupSource = allCategories || categories;
+    lookupSource.forEach(c => { parentMap[c.id] = c.name; });
 
     if (categories.length === 0) {
         return (
@@ -45,7 +48,7 @@ export default function KategoriTable({ categories, onEdit, onDelete, currentUse
             <tbody>
                 {categories.map((cat, idx) => (
                     <tr key={cat.id}>
-                        <td style={{ color: 'var(--ink-4)', width: 40 }}>{idx + 1}</td>
+                        <td style={{ color: 'var(--ink-4)', width: 40 }}>{startIndex + idx + 1}</td>
                         <td>
                             <div className="kat-name-cell">
                                 <div className="kat-icon-preview">
