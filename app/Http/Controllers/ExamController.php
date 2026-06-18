@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exam;
 use App\Services\ExamService;
 use App\Services\CategoryService;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,11 +22,14 @@ class ExamController extends Controller
 
     /**
      * Display the exam management page.
+     * institution_id is ALWAYS taken from the authenticated user — never from the URL.
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
-        $institutionId = $user->institution_id;
+        Gate::authorize('viewAny', Exam::class);
+
+        $user          = $request->user();
+        $institutionId = $user->institution_id; // scoped from auth, not from URL
 
         $filters = $request->only(['q', 'status', 'type', 'page']);
 
@@ -35,13 +40,13 @@ class ExamController extends Controller
         );
 
         $categories = $this->categoryService->getCategoriesByInstitution($institutionId);
-        $stats = $this->examService->getExamStats($institutionId);
+        $stats      = $this->examService->getExamStats($institutionId);
 
         return Inertia::render('ManajemenUjian/Index', [
-            'exams' => $exams,
+            'exams'      => $exams,
             'categories' => $categories,
-            'stats' => $stats,
-            'filters' => (object) $filters,
+            'stats'      => $stats,
+            'filters'    => (object) $filters,
         ]);
     }
 
@@ -50,21 +55,24 @@ class ExamController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Exam::class);
+
         $user = $request->user();
 
         $validated = $request->validate([
-            'title'          => 'required|string|max:255',
-            'type'           => 'required|string|in:Simulasi,Latihan,Resmi',
-            'duration'       => 'required|integer|min:1',
-            'passing_grade'  => 'nullable|integer|min:0|max:100',
-            'category_id'    => 'nullable|string|exists:categories,id',
-            'start_time'     => 'nullable|date',
-            'end_time'       => 'nullable|date|after_or_equal:start_time',
-            'instructions'   => 'nullable|string',
-            'settings'       => 'nullable|array',
-            'status'         => 'nullable|string|in:draft,aktif,terjadwal,selesai',
+            'title'         => 'required|string|max:255',
+            'type'          => 'required|string|in:Simulasi,Latihan,Resmi',
+            'duration'      => 'required|integer|min:1',
+            'passing_grade' => 'nullable|integer|min:0|max:100',
+            'category_id'   => 'nullable|string|exists:categories,id',
+            'start_time'    => 'nullable|date',
+            'end_time'      => 'nullable|date|after_or_equal:start_time',
+            'instructions'  => 'nullable|string',
+            'settings'      => 'nullable|array',
+            'status'        => 'nullable|string|in:draft,aktif,terjadwal,selesai',
         ]);
 
+        // institution_id always comes from auth user, never from request payload
         $this->examService->createExam($user->institution_id, $user->id, $validated);
 
         return redirect()->route('ujian.index')
@@ -72,42 +80,19 @@ class ExamController extends Controller
     }
 
     /**
-     * Update the specified exam in storage.
-     */
-    public function update(Request $request, string $id): RedirectResponse
-    {
-        $user = $request->user();
-
-        $validated = $request->validate([
-            'title'          => 'sometimes|required|string|max:255',
-            'type'           => 'sometimes|required|string|in:Simulasi,Latihan,Resmi',
-            'duration'       => 'sometimes|required|integer|min:1',
-            'passing_grade'  => 'nullable|integer|min:0|max:100',
-            'category_id'    => 'nullable|string|exists:categories,id',
-            'start_time'     => 'nullable|date',
-            'end_time'       => 'nullable|date|after_or_equal:start_time',
-            'instructions'   => 'nullable|string',
-            'settings'       => 'nullable|array',
-            'status'         => 'nullable|string|in:draft,aktif,terjadwal,selesai',
-        ]);
-
-        $this->examService->updateExam($id, $user->institution_id, $validated);
-
-        return redirect()->route('ujian.show', $id)
-            ->with('success', 'Ujian berhasil diperbarui.');
-    }
-
-    /**
      * Display the exam detail page with registered participants.
      */
     public function show(Request $request, string $id): Response
     {
-        $user    = $request->user();
-        $exam    = $this->examService->getExamById($id, $user->institution_id);
+        $user = $request->user();
 
+        // findById already scopes by institution_id from auth via ExamRepository
+        $exam = $this->examService->getExamById($id, $user->institution_id);
         abort_if(!$exam, 404, 'Ujian tidak ditemukan.');
 
-        // Load participant user data from settings.participants (array of user IDs)
+        // Authorize against the resolved exam object (validates institution match)
+        Gate::authorize('view', $exam);
+
         $participantIds = $exam->settings['participants'] ?? [];
         $participants   = [];
         if (!empty($participantIds)) {
@@ -117,11 +102,11 @@ class ExamController extends Controller
                 ->toArray();
         }
 
-        // Available participants (peserta role, not yet added)
+        // Available participants — scoped to the same institution
         $availableQuery = User::where('role', 'peserta')
             ->whereNotIn('id', $participantIds);
 
-        if ($user->role !== 'admin' && $user->role !== 'dev') {
+        if ($user->role !== 'dev') {
             $availableQuery->where('institution_id', $user->institution_id);
         }
 
@@ -131,9 +116,8 @@ class ExamController extends Controller
             ->get()
             ->toArray();
 
-        // Fetch all institution names from database
         $institutions = \App\Models\Institution::orderBy('name')->pluck('name')->toArray();
-        $categories = $this->categoryService->getCategoriesByInstitution($user->institution_id);
+        $categories   = $this->categoryService->getCategoriesByInstitution($user->institution_id);
 
         return Inertia::render('ManajemenUjian/Show', [
             'exam'                  => $exam,
@@ -149,6 +133,55 @@ class ExamController extends Controller
     }
 
     /**
+     * Update the specified exam in storage.
+     */
+    public function update(Request $request, string $id): RedirectResponse
+    {
+        $user = $request->user();
+
+        $exam = $this->examService->getExamById($id, $user->institution_id);
+        abort_if(!$exam, 404, 'Ujian tidak ditemukan.');
+
+        Gate::authorize('update', $exam);
+
+        $validated = $request->validate([
+            'title'         => 'sometimes|required|string|max:255',
+            'type'          => 'sometimes|required|string|in:Simulasi,Latihan,Resmi',
+            'duration'      => 'sometimes|required|integer|min:1',
+            'passing_grade' => 'nullable|integer|min:0|max:100',
+            'category_id'   => 'nullable|string|exists:categories,id',
+            'start_time'    => 'nullable|date',
+            'end_time'      => 'nullable|date|after_or_equal:start_time',
+            'instructions'  => 'nullable|string',
+            'settings'      => 'nullable|array',
+            'status'        => 'nullable|string|in:draft,aktif,terjadwal,selesai',
+        ]);
+
+        $this->examService->updateExam($id, $user->institution_id, $validated);
+
+        return redirect()->route('ujian.show', $id)
+            ->with('success', 'Ujian berhasil diperbarui.');
+    }
+
+    /**
+     * Remove the specified exam from storage.
+     */
+    public function destroy(Request $request, string $id): RedirectResponse
+    {
+        $user = $request->user();
+
+        $exam = $this->examService->getExamById($id, $user->institution_id);
+        abort_if(!$exam, 404, 'Ujian tidak ditemukan.');
+
+        Gate::authorize('delete', $exam);
+
+        $this->examService->deleteExam($id, $user->institution_id);
+
+        return redirect()->route('ujian.index')
+            ->with('success', 'Ujian berhasil dihapus.');
+    }
+
+    /**
      * Display the exam live monitoring page.
      */
     public function monitor(Request $request, string $id): Response
@@ -157,8 +190,8 @@ class ExamController extends Controller
         $exam = $this->examService->getExamById($id, $user->institution_id);
 
         abort_if(!$exam, 404, 'Ujian tidak ditemukan.');
+        Gate::authorize('view', $exam);
 
-        // Load participant user data from settings.participants (array of user IDs)
         $participantIds = $exam->settings['participants'] ?? [];
         $participants   = [];
         if (!empty($participantIds)) {
@@ -168,27 +201,26 @@ class ExamController extends Controller
                 ->toArray();
         }
 
-        // Add mock live monitoring data (remaining time, questions answered, cheat logs, online status)
         foreach ($participants as &$p) {
-            $p['is_online'] = (rand(0, 10) > 2); // 80% online
-            $p['answered_count'] = rand(5, 45); // answered questions
-            $p['sisa_waktu'] = rand(10, $exam->duration);
-            $p['violations_count'] = (rand(0, 10) > 8) ? rand(1, 3) : 0; // 20% cheat probability
-            $p['violations'] = [];
+            $p['is_online']        = (rand(0, 10) > 2);
+            $p['answered_count']   = rand(5, 45);
+            $p['sisa_waktu']       = rand(10, $exam->duration);
+            $p['violations_count'] = (rand(0, 10) > 8) ? rand(1, 3) : 0;
+            $p['violations']       = [];
             if ($p['violations_count'] > 0) {
                 $violationTypes = ['Keluar Fullscreen', 'Tab Blur (Buka halaman lain)', 'Copy-paste terdeteksi'];
                 for ($i = 0; $i < $p['violations_count']; $i++) {
                     $p['violations'][] = [
                         'time' => date('H:i:s', time() - rand(60, 1800)),
-                        'type' => $violationTypes[array_rand($violationTypes)]
+                        'type' => $violationTypes[array_rand($violationTypes)],
                     ];
                 }
             }
         }
 
         return Inertia::render('ManajemenUjian/Monitor', [
-            'exam'                  => $exam,
-            'participants'          => $participants,
+            'exam'         => $exam,
+            'participants' => $participants,
         ]);
     }
 
@@ -201,8 +233,8 @@ class ExamController extends Controller
         $exam = $this->examService->getExamById($id, $user->institution_id);
 
         abort_if(!$exam, 404, 'Ujian tidak ditemukan.');
+        Gate::authorize('view', $exam);
 
-        // Load participant user data from settings.participants (array of user IDs)
         $participantIds = $exam->settings['participants'] ?? [];
         $participants   = [];
         if (!empty($participantIds)) {
@@ -214,74 +246,67 @@ class ExamController extends Controller
 
         $seksi = $exam->settings['seksi'] ?? [];
 
-        // Generate realistic scores breakdown for each participant
         foreach ($participants as &$p) {
-            $p['is_present'] = (rand(0, 10) > 1); // 90% attendance
+            $p['is_present'] = (rand(0, 10) > 1);
             if (!$p['is_present']) {
-                $p['total_score'] = 0;
-                $p['correct_total'] = 0;
+                $p['total_score']     = 0;
+                $p['correct_total']   = 0;
                 $p['incorrect_total'] = 0;
                 $p['unanswered_total'] = 0;
                 $p['seksi_breakdown'] = [];
-                $p['passed'] = false;
+                $p['passed']          = false;
                 continue;
             }
 
-            $correctTotal = 0;
+            $correctTotal   = 0;
             $incorrectTotal = 0;
             $unansweredTotal = 0;
-            $totalScore = 0;
+            $totalScore     = 0;
             $seksiBreakdown = [];
             $passedSeksiCount = 0;
 
             foreach ($seksi as $sec) {
-                $count = $sec['soal_count'] ?? 30;
-                $correct = rand(floor($count * 0.4), $count);
+                $count      = $sec['soal_count'] ?? 30;
+                $correct    = rand(floor($count * 0.4), $count);
                 $unanswered = rand(0, floor(($count - $correct) * 0.3));
-                $incorrect = $count - $correct - $unanswered;
+                $incorrect  = $count - $correct - $unanswered;
 
-                $correctPoints = $sec['correct_points'] ?? 5;
+                $correctPoints   = $sec['correct_points'] ?? 5;
                 $incorrectPoints = $sec['incorrect_points'] ?? 0;
-                $score = ($correct * $correctPoints) - ($incorrect * $incorrectPoints);
+                $score           = ($correct * $correctPoints) - ($incorrect * $incorrectPoints);
 
-                $correctTotal += $correct;
-                $incorrectTotal += $incorrect;
+                $correctTotal    += $correct;
+                $incorrectTotal  += $incorrect;
                 $unansweredTotal += $unanswered;
-                $totalScore += $score;
+                $totalScore      += $score;
 
                 $passingGrade = $sec['passing_grade'] ?? 0;
-                $isPassed = ($passingGrade == 0 || $score >= $passingGrade);
-                if ($isPassed) {
-                    $passedSeksiCount++;
-                }
+                $isPassed     = ($passingGrade == 0 || $score >= $passingGrade);
+                if ($isPassed) $passedSeksiCount++;
 
                 $seksiBreakdown[] = [
-                    'title' => $sec['title'],
-                    'correct' => $correct,
-                    'incorrect' => $incorrect,
-                    'unanswered' => $unanswered,
-                    'score' => $score,
+                    'title'        => $sec['title'],
+                    'correct'      => $correct,
+                    'incorrect'    => $incorrect,
+                    'unanswered'   => $unanswered,
+                    'score'        => $score,
                     'passing_grade' => $passingGrade,
-                    'passed' => $isPassed
+                    'passed'       => $isPassed,
                 ];
             }
 
-            $p['correct_total'] = $correctTotal;
-            $p['incorrect_total'] = $incorrectTotal;
+            $p['correct_total']    = $correctTotal;
+            $p['incorrect_total']  = $incorrectTotal;
             $p['unanswered_total'] = $unansweredTotal;
-            $p['total_score'] = $totalScore;
-            $p['seksi_breakdown'] = $seksiBreakdown;
+            $p['total_score']      = $totalScore;
+            $p['seksi_breakdown']  = $seksiBreakdown;
 
-            // Overall pass condition:
-            // If overall exam passing_grade is set, check against it.
-            // If seksi passing grades are set, all must pass.
-            $examPassingGrade = $exam->passing_grade ?? 65;
-            $hasSeksiPassingGrades = collect($seksi)->contains(fn($s) => ($s['passing_grade'] ?? 0) > 0);
-            
+            $examPassingGrade       = $exam->passing_grade ?? 65;
+            $hasSeksiPassingGrades  = collect($seksi)->contains(fn($s) => ($s['passing_grade'] ?? 0) > 0);
+
             if ($hasSeksiPassingGrades) {
                 $p['passed'] = ($passedSeksiCount === count($seksi));
             } else {
-                // Percentage score
                 $maxPossibleScore = collect($seksi)->sum(fn($s) => ($s['soal_count'] ?? 30) * ($s['correct_points'] ?? 5));
                 $pct = $maxPossibleScore > 0 ? ($totalScore / $maxPossibleScore) * 100 : 0;
                 $p['passed'] = ($pct >= $examPassingGrade);
@@ -289,8 +314,8 @@ class ExamController extends Controller
         }
 
         return Inertia::render('ManajemenUjian/Report', [
-            'exam'                  => $exam,
-            'participants'          => $participants,
+            'exam'         => $exam,
+            'participants' => $participants,
         ]);
     }
 
@@ -302,6 +327,8 @@ class ExamController extends Controller
         $user = $request->user();
         $exam = $this->examService->getExamById($id, $user->institution_id);
         abort_if(!$exam, 404);
+
+        Gate::authorize('view', $exam);
 
         $participantIds = $exam->settings['participants'] ?? [];
         $query = User::whereIn('id', $participantIds)
@@ -326,6 +353,8 @@ class ExamController extends Controller
         $user = $request->user();
         $exam = $this->examService->getExamById($id, $user->institution_id);
         abort_if(!$exam, 404);
+
+        Gate::authorize('manageParticipants', $exam);
 
         $request->validate([
             'user_ids'   => 'required|array|min:1',
@@ -352,6 +381,8 @@ class ExamController extends Controller
         $exam = $this->examService->getExamById($id, $user->institution_id);
         abort_if(!$exam, 404);
 
+        Gate::authorize('manageParticipants', $exam);
+
         $existing = $exam->settings['participants'] ?? [];
         $updated  = array_values(array_filter($existing, fn($uid) => $uid !== $userId));
 
@@ -361,18 +392,5 @@ class ExamController extends Controller
 
         return redirect()->route('ujian.show', $id)
             ->with('success', 'Peserta berhasil dihapus dari ujian.');
-    }
-
-    /**
-     * Remove the specified exam from storage.
-     */
-    public function destroy(Request $request, string $id): RedirectResponse
-    {
-        $user = $request->user();
-
-        $this->examService->deleteExam($id, $user->institution_id);
-
-        return redirect()->route('ujian.index')
-            ->with('success', 'Ujian berhasil dihapus.');
     }
 }

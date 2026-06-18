@@ -22,15 +22,25 @@ class DatabaseSeeder extends Seeder
             'subscription_plan' => 'professional',
         ]);
 
-        // 2. Buat Admin User
-        User::factory()->admin()->create([
-            'name' => 'Admin Utama',
-            'username' => 'admin',
-            'email' => 'admin@example.com',
+        // 2. Buat Admin User 1
+        $admin1 = User::factory()->admin()->create([
+            'name' => 'Admin Satu',
+            'username' => 'admin1',
+            'email' => 'admin1@example.com',
+            'password' => bcrypt('123'),
             'institution_id' => $institution->id,
         ]);
 
-        // 3. Buat Proctor User (Pengawas)
+        // 3. Buat Admin User 2
+        $admin2 = User::factory()->admin()->create([
+            'name' => 'Admin Dua',
+            'username' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password' => bcrypt('123'),
+            'institution_id' => $institution->id,
+        ]);
+
+        // 4. Buat Proctor User (Pengawas)
         User::factory()->proctor()->create([
             'name' => 'Pengawas Satu',
             'username' => 'proctor',
@@ -38,7 +48,7 @@ class DatabaseSeeder extends Seeder
             'institution_id' => $institution->id,
         ]);
 
-        // 4. Buat Peserta User
+        // 5. Buat Peserta User
         User::factory()->create([
             'name' => 'Peserta Ujian',
             'username' => 'peserta',
@@ -46,8 +56,8 @@ class DatabaseSeeder extends Seeder
             'institution_id' => $institution->id,
         ]);
 
-        // 5. Buat Developer User
-        User::factory()->create([
+        // 6. Buat Developer User
+        $dev = User::factory()->create([
             'name' => 'Developer',
             'username' => 'dev',
             'email' => 'dev@example.com',
@@ -55,6 +65,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'dev',
             'institution_id' => $institution->id,
         ]);
+
+        // Daftar user yang akan di-random sebagai pemilik soal
+        $questionAuthors = [$dev->id, $admin1->id, $admin2->id];
 
         // 6. Buat Kategori Soal Default
         $cats = [
@@ -1037,12 +1050,13 @@ class DatabaseSeeder extends Seeder
 
             $question = \App\Models\Question::create([
                 'institution_id' => $institution->id,
-                'category_id' => $catId,
-                'type' => $s['tipe'] ?? 'pg',
-                'difficulty' => $s['diff'] ?? 'Sedang',
-                'points' => $s['poin'] ?? 5,
-                'question_text' => $s['q'],
-                'is_active' => true,
+                'user_id'        => $questionAuthors[array_rand($questionAuthors)],
+                'category_id'    => $catId,
+                'type'           => $s['tipe'] ?? 'pg',
+                'difficulty'     => $s['diff'] ?? 'Sedang',
+                'points'         => $s['poin'] ?? 5,
+                'question_text'  => $s['q'],
+                'is_active'      => $s['aktif'] ?? true,
             ]);
 
             if (isset($s['opts'])) {
@@ -1055,9 +1069,9 @@ class DatabaseSeeder extends Seeder
                     }
 
                     \App\Models\QuestionOption::create([
-                        'question_id' => $question->id,
-                        'option_text' => $oVal,
-                        'is_correct' => $isCorrect,
+                        'question_id'  => $question->id,
+                        'option_text'  => $oVal,
+                        'is_correct'   => $isCorrect,
                         'order_column' => $oIdx,
                     ]);
                 }
@@ -1493,7 +1507,7 @@ class DatabaseSeeder extends Seeder
         foreach ($exams as $exam) {
             \App\Models\Exam::create([
                 'institution_id' => $institution->id,
-                'user_id' => $admin ? $admin->id : null,
+                'user_id' => $admin1->id,
                 'title' => $exam['title'],
                 'type' => $exam['type'],
                 'duration' => $exam['duration'],

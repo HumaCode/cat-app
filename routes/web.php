@@ -59,18 +59,20 @@ Route::middleware('auth')->group(function () {
     });
 
     // Manajemen Ujian
-    Route::get('/ujian', [ExamController::class, 'index'])->name('ujian.index');
-    Route::post('/ujian', [ExamController::class, 'store'])->name('ujian.store');
-    Route::get('/ujian/{id}', [ExamController::class, 'show'])->name('ujian.show');
-    Route::put('/ujian/{id}', [ExamController::class, 'update'])->name('ujian.update');
-    Route::delete('/ujian/{id}', [ExamController::class, 'destroy'])->name('ujian.destroy');
-    Route::get('/ujian/{id}/monitor', [ExamController::class, 'monitor'])->name('ujian.monitor');
-    Route::get('/ujian/{id}/laporan', [ExamController::class, 'report'])->name('ujian.report');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/ujian', [ExamController::class, 'index'])->name('ujian.index');
+        Route::post('/ujian', [ExamController::class, 'store'])->name('ujian.store');
+        Route::get('/ujian/{id}', [ExamController::class, 'show'])->name('ujian.show');
+        Route::put('/ujian/{id}', [ExamController::class, 'update'])->name('ujian.update');
+        Route::delete('/ujian/{id}', [ExamController::class, 'destroy'])->name('ujian.destroy');
+        Route::get('/ujian/{id}/monitor', [ExamController::class, 'monitor'])->name('ujian.monitor');
+        Route::get('/ujian/{id}/laporan', [ExamController::class, 'report'])->name('ujian.report');
 
-    // Peserta Ujian
-    Route::get('/ujian/{id}/peserta', [ExamController::class, 'pesertaList'])->name('ujian.peserta.list');
-    Route::post('/ujian/{id}/peserta', [ExamController::class, 'pesertaAdd'])->name('ujian.peserta.add');
-    Route::delete('/ujian/{id}/peserta/{userId}', [ExamController::class, 'pesertaRemove'])->name('ujian.peserta.remove');
+        // Peserta Ujian
+        Route::get('/ujian/{id}/peserta', [ExamController::class, 'pesertaList'])->name('ujian.peserta.list');
+        Route::post('/ujian/{id}/peserta', [ExamController::class, 'pesertaAdd'])->name('ujian.peserta.add');
+        Route::delete('/ujian/{id}/peserta/{userId}', [ExamController::class, 'pesertaRemove'])->name('ujian.peserta.remove');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import '../../../css/bank-soal.css';
+import '../../../css/kategori.css';
 
 import KategoriTree from './Partials/KategoriTree';
 import FilterBar from './Partials/FilterBar';
@@ -272,12 +273,6 @@ export default function Index({
         }
     };
 
-    const cleanLabel = (label: string) => {
-        if (label.includes('Previous')) return '« Sblm';
-        if (label.includes('Next')) return 'Sldt »';
-        return label;
-    };
-
     // Get active category name
     const getActiveCategoryName = () => {
         if (!filters.category_id) return 'Semua Soal';
@@ -425,97 +420,102 @@ export default function Index({
                                 </div>
                             )}
 
-                            {/* Pagination Controls */}
+                            {/* Pagination — style kat-pagination */}
                             {questions.total > 0 && (
-                                <div className="pagination">
-                                    <div className="pg-info">
-                                        Halaman <strong>{questions.current_page}</strong> dari <strong>{questions.last_page || 1}</strong>
-                                    </div>
-                                    <div className="pg-controls">
-                                        {(() => {
-                                            const currentPage = questions.current_page;
-                                            const lastPage = questions.last_page || 1;
-                                            const links = questions.links;
-                                            
-                                            const prevLink = links.find(l => l.label.includes('Previous'));
-                                            const nextLink = links.find(l => l.label.includes('Next'));
-                                            
-                                            const getUrlForPage = (pageNum: number) => {
-                                                const found = links.find(l => l.label === String(pageNum));
-                                                if (found) return found.url;
-                                                const anyUrl = links.find(l => l.url !== null)?.url;
-                                                if (anyUrl) {
-                                                    try {
-                                                        const urlObj = new URL(anyUrl);
-                                                        urlObj.searchParams.set('page', String(pageNum));
-                                                        return urlObj.toString();
-                                                    } catch (e) {
-                                                        return null;
-                                                    }
-                                                }
-                                                return null;
-                                            };
+                                <div className="kat-pagination">
+                                    <span>
+                                        Menampilkan {questions.from || 0} - {questions.to || 0} dari {questions.total} soal
+                                    </span>
+                                    {(questions.last_page || 1) > 1 && (() => {
+                                        const currentPage = questions.current_page;
+                                        const lastPage = questions.last_page || 1;
+                                        const links = questions.links;
 
-                                            const pages = [];
-                                            
-                                            // Previous
-                                            pages.push({
-                                                label: '« Sblm',
-                                                url: prevLink ? prevLink.url : null,
-                                                active: false,
-                                                wide: true
-                                            });
+                                        const prevLink = links.find(l => l.label.includes('Previous'));
+                                        const nextLink = links.find(l => l.label.includes('Next'));
 
-                                            let start = Math.max(1, currentPage - 2);
-                                            let end = Math.min(lastPage, currentPage + 2);
-
-                                            if (end - start + 1 < 5) {
-                                                if (start === 1) {
-                                                    end = Math.min(lastPage, start + 4);
-                                                } else if (end === lastPage) {
-                                                    start = Math.max(1, end - 4);
-                                                }
+                                        const getUrlForPage = (pageNum: number) => {
+                                            const found = links.find(l => l.label === String(pageNum));
+                                            if (found) return found.url;
+                                            const anyUrl = links.find(l => l.url !== null)?.url;
+                                            if (anyUrl) {
+                                                try {
+                                                    const urlObj = new URL(anyUrl);
+                                                    urlObj.searchParams.set('page', String(pageNum));
+                                                    return urlObj.toString();
+                                                } catch { return null; }
                                             }
+                                            return null;
+                                        };
 
-                                            if (start > 1) {
-                                                pages.push({ label: '1', url: getUrlForPage(1), active: currentPage === 1 });
-                                                if (start > 2) {
-                                                    pages.push({ label: '...', url: null, active: false });
-                                                }
-                                            }
+                                        let start = Math.max(1, currentPage - 2);
+                                        let end   = Math.min(lastPage, currentPage + 2);
+                                        if (end - start + 1 < 5) {
+                                            if (start === 1) end = Math.min(lastPage, start + 4);
+                                            else if (end === lastPage) start = Math.max(1, end - 4);
+                                        }
 
-                                            for (let i = start; i <= end; i++) {
-                                                pages.push({ label: String(i), url: getUrlForPage(i), active: currentPage === i });
-                                            }
+                                        const midPages: number[] = [];
+                                        for (let i = start; i <= end; i++) midPages.push(i);
 
-                                            if (end < lastPage) {
-                                                if (end < lastPage - 1) {
-                                                    pages.push({ label: '...', url: null, active: false });
-                                                }
-                                                pages.push({ label: String(lastPage), url: getUrlForPage(lastPage), active: currentPage === lastPage });
-                                            }
+                                        return (
+                                            <div className="kat-page-btns">
+                                                {/* First */}
+                                                <button type="button" className="kat-page-btn"
+                                                    disabled={currentPage === 1}
+                                                    onClick={() => handlePageChange(getUrlForPage(1))}
+                                                    title="Halaman Pertama"
+                                                >«</button>
+                                                {/* Prev */}
+                                                <button type="button" className="kat-page-btn"
+                                                    disabled={!prevLink?.url}
+                                                    onClick={() => handlePageChange(prevLink?.url ?? null)}
+                                                    title="Sebelumnya"
+                                                >‹</button>
 
-                                            // Next
-                                            pages.push({
-                                                label: 'Sldt »',
-                                                url: nextLink ? nextLink.url : null,
-                                                active: false,
-                                                wide: true
-                                            });
+                                                {/* Ellipsis awal */}
+                                                {start > 1 && (
+                                                    <>
+                                                        <button type="button" className={`kat-page-btn ${currentPage === 1 ? 'active' : ''}`}
+                                                            onClick={() => handlePageChange(getUrlForPage(1))}
+                                                        >1</button>
+                                                        {start > 2 && <button type="button" className="kat-page-btn" disabled>…</button>}
+                                                    </>
+                                                )}
 
-                                            return pages.map((link, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    className={`pg-btn ${link.url ? '' : 'disabled'} ${link.active ? 'active' : ''} ${link.wide ? 'wide' : ''}`}
-                                                    disabled={!link.url}
-                                                    onClick={() => handlePageChange(link.url)}
-                                                >
-                                                    {link.label}
-                                                </button>
-                                            ));
-                                        })()}
-                                    </div>
+                                                {/* Halaman tengah */}
+                                                {midPages.map(page => (
+                                                    <button key={page} type="button"
+                                                        className={`kat-page-btn ${currentPage === page ? 'active' : ''}`}
+                                                        onClick={() => handlePageChange(getUrlForPage(page))}
+                                                    >{page}</button>
+                                                ))}
+
+                                                {/* Ellipsis akhir */}
+                                                {end < lastPage && (
+                                                    <>
+                                                        {end < lastPage - 1 && <button type="button" className="kat-page-btn" disabled>…</button>}
+                                                        <button type="button" className={`kat-page-btn ${currentPage === lastPage ? 'active' : ''}`}
+                                                            onClick={() => handlePageChange(getUrlForPage(lastPage))}
+                                                        >{lastPage}</button>
+                                                    </>
+                                                )}
+
+                                                {/* Next */}
+                                                <button type="button" className="kat-page-btn"
+                                                    disabled={!nextLink?.url}
+                                                    onClick={() => handlePageChange(nextLink?.url ?? null)}
+                                                    title="Berikutnya"
+                                                >›</button>
+                                                {/* Last */}
+                                                <button type="button" className="kat-page-btn"
+                                                    disabled={currentPage === lastPage}
+                                                    onClick={() => handlePageChange(getUrlForPage(lastPage))}
+                                                    title="Halaman Terakhir"
+                                                >»</button>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </div>

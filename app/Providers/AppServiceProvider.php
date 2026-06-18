@@ -5,8 +5,13 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use App\Models\Exam;
+use App\Policies\ExamPolicy;
+use App\Models\Question;
+use App\Policies\QuestionPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Explicit policy registration (supplements auto-discovery)
+        Gate::policy(Exam::class, ExamPolicy::class);
+        Gate::policy(Question::class, QuestionPolicy::class);
+
         $this->configureDefaults();
     }
 
