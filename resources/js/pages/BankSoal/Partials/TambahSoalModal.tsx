@@ -15,6 +15,7 @@ interface QuestionOption {
     is_correct: boolean;
     order_column: number;
     pair_text?: string;
+    image_url?: string | null;
 }
 
 interface Question {
@@ -31,6 +32,7 @@ interface Question {
     explanation?: string;
     is_active: boolean;
     options?: QuestionOption[];
+    image_url?: string | null;
 }
 
 interface TambahSoalModalProps {
@@ -678,7 +680,7 @@ export default function TambahSoalModal({
                                         {((editingQuestion?.image_url && !clearQuestionImage) || questionImage) ? (
                                             <div style={{ position: 'relative', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)', padding: '6px', background: 'var(--surface-2)', display: 'inline-flex' }}>
                                                 <img 
-                                                    src={questionImage ? URL.createObjectURL(questionImage) : editingQuestion?.image_url} 
+                                                    src={questionImage ? URL.createObjectURL(questionImage) : (editingQuestion?.image_url ?? undefined)} 
                                                     alt="Preview Soal" 
                                                     style={{ maxHeight: '120px', maxWidth: '240px', objectFit: 'contain', borderRadius: 'var(--r-xs)' }} 
                                                 />
@@ -892,7 +894,7 @@ export default function TambahSoalModal({
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '36px' }}>
                                                             <div style={{ position: 'relative', border: '1px solid var(--border-2)', borderRadius: 'var(--r-xs)', padding: '4px', background: 'var(--surface-2)', display: 'inline-flex' }}>
                                                                 <img 
-                                                                    src={optionImages[idx] ? URL.createObjectURL(optionImages[idx] as File) : opt.image_url} 
+                                                                    src={optionImages[idx] ? URL.createObjectURL(optionImages[idx] as File) : (opt.image_url ?? undefined)} 
                                                                     alt={`Preview Opsi ${label}`} 
                                                                     style={{ maxHeight: '60px', maxWidth: '120px', objectFit: 'contain', borderRadius: 'var(--r-2xs)' }} 
                                                                 />

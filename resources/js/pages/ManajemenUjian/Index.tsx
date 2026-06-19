@@ -26,6 +26,14 @@ interface PaginatedExams {
     }>;
 }
 
+interface LiveStats {
+    active_exams: number;
+    active_participants: number;
+    total_participants: number;
+    active_exam_title: string | null;
+    progress_percent: number;
+}
+
 interface IndexProps {
     exams: PaginatedExams;
     categories: CategoryItem[];
@@ -36,6 +44,7 @@ interface IndexProps {
         draft: number;
         selesai: number;
     };
+    live: LiveStats;
     filters: {
         q?: string;
         status?: string;
@@ -52,6 +61,7 @@ export default function ExamIndex() {
         exams,
         categories = [],
         stats = { total: 0, aktif: 0, terjadwal: 0, draft: 0, selesai: 0 },
+        live = { active_exams: 0, active_participants: 0, total_participants: 0, active_exam_title: null, progress_percent: 0 },
         filters = {},
         flash = {}
     } = usePage<any>().props as unknown as IndexProps;
@@ -78,8 +88,27 @@ export default function ExamIndex() {
 
     // Filter values (derived from query params or local state)
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
+    const [localSearch, setLocalSearch] = useState(filters.q || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'semua');
     const [typeFilter, setTypeFilter] = useState(filters.type || '');
+
+    // Keep local search and query filters synced
+    useEffect(() => {
+        const currentSearch = filters.q || '';
+        setSearchQuery(currentSearch);
+        setLocalSearch(currentSearch);
+    }, [filters.q]);
+
+    // Debounce typing in the search bar
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== (filters.q || '')) {
+                setSearchQuery(localSearch);
+                applyFilters({ q: localSearch });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [localSearch]);
 
     // Show flash notifications
     useEffect(() => {
@@ -100,7 +129,7 @@ export default function ExamIndex() {
     // Trigger Inertia reload when filters mutate
     const applyFilters = (updates: Record<string, string>) => {
         const nextFilters = {
-            q: updates.q !== undefined ? updates.q : searchQuery,
+            q: updates.q !== undefined ? updates.q : localSearch,
             status: updates.status !== undefined ? updates.status : statusFilter,
             type: updates.type !== undefined ? updates.type : typeFilter,
         };
@@ -113,7 +142,7 @@ export default function ExamIndex() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        applyFilters({ q: searchQuery });
+        applyFilters({ q: localSearch });
     };
 
     const handleTabChange = (tab: string) => {
@@ -198,6 +227,7 @@ export default function ExamIndex() {
 
             {/* Live Monitor Strip */}
             <LiveMonitorStrip
+                live={live}
                 onOpenMonitor={() => {
                     const activeExam = exams.data.find(e => e.status === 'aktif');
                     if (activeExam) {
@@ -275,8 +305,8 @@ export default function ExamIndex() {
                         <input
                             type="text"
                             placeholder="Cari nama ujian..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
                             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12.5px', width: '160px' }}
                         />
                         <i className="bi bi-search" style={{ fontSize: '13px', color: 'var(--ink-4)', cursor: 'default' }} />
@@ -494,94 +524,97 @@ export default function ExamIndex() {
                 document.body
             )}
 
-            {/* Toast Notifications */}
-            <div className={`dynamic-island-toast-container ${toast.show ? 'show' : ''}`}>
-                <style>{`
-                    .dynamic-island-toast-container {
-                        position: fixed;
-                        bottom: 30px;
-                        left: 50%;
-                        transform: translateX(-50%) translateY(100px);
-                        z-index: 9999;
-                        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                        pointer-events: none;
-                    }
-                    .dynamic-island-toast-container.show {
-                        transform: translateX(-50%) translateY(0);
-                    }
-                    .dynamic-island-toast {
-                        background: #111827;
-                        color: #fff;
-                        padding: 10px 18px;
-                        border-radius: 30px;
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        pointer-events: auto;
-                        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-                        border: 1px solid rgba(255, 255, 255, 0.08);
-                    }
-                    .dynamic-island-toast.success {
-                        border-color: rgba(16, 185, 129, 0.3);
-                    }
-                    .dynamic-island-toast.error {
-                        border-color: rgba(239, 68, 68, 0.3);
-                    }
-                    .dynamic-island-icon {
-                        width: 22px;
-                        height: 22px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 11px;
-                        font-weight: bold;
-                        flex-shrink: 0;
-                    }
-                    .dynamic-island-toast.success .dynamic-island-icon {
-                        background: #10b981;
-                        color: #fff;
-                    }
-                    .dynamic-island-toast.error .dynamic-island-icon {
-                        background: #ef4444;
-                        color: #fff;
-                    }
-                    .dynamic-island-content {
-                        font-size: 13px;
-                        font-weight: 500;
-                        white-space: nowrap;
-                    }
-                    .dynamic-island-close {
-                        background: none;
-                        border: none;
-                        color: #9ca3af;
-                        cursor: pointer;
-                        font-size: 11px;
-                        padding: 2px;
-                        margin-left: 4px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        transition: color 0.15s;
-                    }
-                    .dynamic-island-close:hover {
-                        color: #fff;
-                    }
-                `}</style>
-                <div className={`dynamic-island-toast ${toast.type}`}>
-                    <div className="dynamic-island-icon">
-                        {toast.type === 'success' ? '✓' : '✕'}
+            {/* Toast Notifications — rendered via portal to escape layout stacking context */}
+            {isMounted && createPortal(
+                <div className={`dynamic-island-toast-container ${toast.show ? 'show' : ''}`}>
+                    <style>{`
+                        .dynamic-island-toast-container {
+                            position: fixed;
+                            bottom: 30px;
+                            left: 50%;
+                            transform: translateX(-50%) translateY(100px);
+                            z-index: 99999;
+                            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                            pointer-events: none;
+                        }
+                        .dynamic-island-toast-container.show {
+                            transform: translateX(-50%) translateY(0);
+                        }
+                        .dynamic-island-toast {
+                            background: #111827;
+                            color: #fff;
+                            padding: 10px 18px;
+                            border-radius: 30px;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            pointer-events: auto;
+                            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+                            border: 1px solid rgba(255, 255, 255, 0.08);
+                        }
+                        .dynamic-island-toast.success {
+                            border-color: rgba(16, 185, 129, 0.3);
+                        }
+                        .dynamic-island-toast.error {
+                            border-color: rgba(239, 68, 68, 0.3);
+                        }
+                        .dynamic-island-icon {
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 11px;
+                            font-weight: bold;
+                            flex-shrink: 0;
+                        }
+                        .dynamic-island-toast.success .dynamic-island-icon {
+                            background: #10b981;
+                            color: #fff;
+                        }
+                        .dynamic-island-toast.error .dynamic-island-icon {
+                            background: #ef4444;
+                            color: #fff;
+                        }
+                        .dynamic-island-content {
+                            font-size: 13px;
+                            font-weight: 500;
+                            white-space: nowrap;
+                        }
+                        .dynamic-island-close {
+                            background: none;
+                            border: none;
+                            color: #9ca3af;
+                            cursor: pointer;
+                            font-size: 11px;
+                            padding: 2px;
+                            margin-left: 4px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: color 0.15s;
+                        }
+                        .dynamic-island-close:hover {
+                            color: #fff;
+                        }
+                    `}</style>
+                    <div className={`dynamic-island-toast ${toast.type}`}>
+                        <div className="dynamic-island-icon">
+                            {toast.type === 'success' ? '✓' : '✕'}
+                        </div>
+                        <div className="dynamic-island-content">{toast.message}</div>
+                        <button
+                            type="button"
+                            className="dynamic-island-close"
+                            onClick={() => setToast((prev) => ({ ...prev, show: false }))}
+                        >
+                            ✕
+                        </button>
                     </div>
-                    <div className="dynamic-island-content">{toast.message}</div>
-                    <button
-                        type="button"
-                        className="dynamic-island-close"
-                        onClick={() => setToast((prev) => ({ ...prev, show: false }))}
-                    >
-                        ✕
-                    </button>
-                </div>
-            </div>
+                </div>,
+                document.body
+            )}
             </div>
         </AuthenticatedLayout>
     );

@@ -1,6 +1,7 @@
 import { useState, PropsWithChildren } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import ParticleCanvas from '@/Components/ParticleCanvas';
+import LogoutConfirmModal from '@/Components/LogoutConfirmModal';
 import '../../css/peserta-dashboard.css';
 
 interface PesertaLayoutProps {
@@ -17,13 +18,20 @@ export default function PesertaLayout({
 }: PropsWithChildren<PesertaLayoutProps>) {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const toggleMobileNav = () => {
         setMobileNavOpen(!mobileNavOpen);
     };
 
     const handleLogout = () => {
-        router.post(route('logout'));
+        setIsLoggingOut(true);
+        router.post(route('logout'), {}, {
+            onFinish: () => {
+                setIsLoggingOut(false);
+                setShowLogoutModal(false);
+            }
+        });
     };
 
     return (
@@ -40,13 +48,13 @@ export default function PesertaLayout({
             </div>
 
             {/* ═══ TOPBAR ═══ */}
-            <header className="topbar">
-                <Link href="#" className="topbar-brand">
+            <header className="peserta-topbar">
+                <Link href="#" className="peserta-brand">
                     <div className="brand-icon">C</div>
-                    <span class="brand-name">CAT System</span>
+                    <span className="brand-name">CAT System</span>
                 </Link>
 
-                <nav className="topbar-nav">
+                <nav className="peserta-nav">
                     <Link href="#" className="nav-link active">
                         <span className="nav-icon">🏠</span> Beranda
                     </Link>
@@ -66,13 +74,13 @@ export default function PesertaLayout({
                     </Link>
                 </nav>
 
-                <div className="topbar-right">
-                    <button className="topbar-notif">
+                <div className="peserta-right">
+                    <button className="peserta-notif">
                         🔔
                         <span className="notif-dot"></span>
                     </button>
                     <div 
-                        className="topbar-ava" 
+                        className="peserta-ava" 
                         title={userName}
                         onClick={() => setShowLogoutModal(true)}
                     >
@@ -113,49 +121,13 @@ export default function PesertaLayout({
                 {children}
             </div>
 
-            {/* Clean Logout Modal */}
-            {showLogoutModal && (
-                <div style={{
-                    position: 'fixed', inset: 0, background: 'rgba(20,20,33,0.4)',
-                    backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <div style={{
-                        background: 'var(--surface)', padding: '24px', borderRadius: 'var(--r)',
-                        width: '90%', maxWidth: '400px', boxShadow: 'var(--shadow-lg)',
-                        border: '1px solid var(--border)'
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px', color: 'var(--ink)' }}>
-                            Konfirmasi Keluar
-                        </h3>
-                        <p style={{ fontSize: '14px', color: 'var(--ink-3)', marginBottom: '20px', lineHeight: 1.5 }}>
-                            Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan berakhir.
-                        </p>
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                            <button 
-                                onClick={() => setShowLogoutModal(false)}
-                                style={{
-                                    padding: '10px 18px', borderRadius: 'var(--r-sm)',
-                                    background: 'var(--bg-2)', color: 'var(--ink-2)',
-                                    fontSize: '13px', fontWeight: 700
-                                }}
-                            >
-                                Batal
-                            </button>
-                            <button 
-                                onClick={handleLogout}
-                                style={{
-                                    padding: '10px 18px', borderRadius: 'var(--r-sm)',
-                                    background: 'var(--rose)', color: '#fff',
-                                    fontSize: '13px', fontWeight: 700
-                                }}
-                            >
-                                Keluar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Custom Reusable Logout Modal */}
+            <LogoutConfirmModal
+                isOpen={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+                onConfirm={handleLogout}
+                isLoading={isLoggingOut}
+            />
         </div>
     );
 }

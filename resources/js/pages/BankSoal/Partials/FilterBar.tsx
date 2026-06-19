@@ -50,6 +50,16 @@ export default function FilterBar({
         });
     };
 
+    // Debounce typing in the search bar
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== (filters.search || '')) {
+                handleFilterChange('search', searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleFilterChange('search', searchTerm);

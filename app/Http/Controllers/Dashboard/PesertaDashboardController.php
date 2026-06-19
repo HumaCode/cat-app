@@ -18,20 +18,28 @@ class PesertaDashboardController extends Controller
     {
         $user = $request->user();
 
+        // Get exams where the user is registered as a participant (in settings->participants)
+        $registeredExams = \App\Models\Exam::with('category')
+            ->where('institution_id', $user->institution_id)
+            ->whereJsonContains('settings->participants', $user->id)
+            ->get();
+
+        $isRegistered = $registeredExams->isNotEmpty();
+
         // Stats — in a real app these come from DB queries
         $stats = $this->buildStats($user);
 
-        // Ongoing exam (if any) — in real app: query exam_sessions
-        $ongoingExam = $this->getOngoingExam($user);
+        // Ongoing exam (if any)
+        $ongoingExam = $isRegistered ? $this->getOngoingExam($user, $registeredExams) : null;
 
-        // Available exams scoped to the user's institution
-        $availableExams = $this->getAvailableExams($user);
+        // Available exams
+        $availableExams = $isRegistered ? $this->getAvailableExams($user, $registeredExams) : [];
 
         // Upcoming schedule
-        $schedule = $this->getUpcomingSchedule($user);
+        $schedule = $isRegistered ? $this->getUpcomingSchedule($user, $registeredExams) : [];
 
         // Score breakdown per category
-        $categoryScores = $this->getCategoryScores($user);
+        $categoryScores = $this->getCategoryScores($user, $registeredExams);
 
         // Achievements
         $achievements = $this->getAchievements($user);
@@ -48,62 +56,100 @@ class PesertaDashboardController extends Controller
             'categoryScores' => $categoryScores,
             'achievements'   => $achievements,
             'history'        => $history,
+            'isRegistered'   => $isRegistered,
         ]);
     }
 
     // ──────────────────────────────────────────────────────────────
-    // Private helpers (stub data — replace with real DB queries later)
+    // Private helpers
     // ──────────────────────────────────────────────────────────────
 
     private function buildStats($user): array
     {
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+        
+        $lastScore = 0.0;
+        if (!empty($riwayat)) {
+            $lastScore = floatval($riwayat[0]['nilai'] ?? 0.0);
+        }
+
+        $nilaiArray = collect($riwayat)->pluck('nilai')->filter();
+
         return [
-            'total_selesai'  => 12,
-            'total_lulus'    => 9,
-            'skor_tertinggi' => 97.5,
-            'ranking'        => '#1',
-            'avg_score'      => 74.2,
+            'total_selesai'  => count($riwayat),
+            'total_lulus'    => collect($riwayat)->where('lulus', true)->count(),
+            'skor_tertinggi' => $nilaiArray->isNotEmpty() ? $nilaiArray->max() : 0.0,
+            'ranking'        => count($riwayat) > 0 ? '#1' : '—',
+            'avg_score'      => $lastScore,
         ];
     }
 
-    private function getOngoingExam($user): ?array
+    private function getOngoingExam($user, $registeredExams): ?array
     {
-        // Stub — replace with: ExamSession::where('user_id', $user->id)->where('status','ongoing')->first()
+        // Find the first registered exam that has status 'aktif'
+        $exam = $registeredExams->first(fn($e) => $e->status === 'aktif');
+        if (!$exam) {
+            return null;
+        }
+
+        $type = $exam->type ?? 'Latihan';
+        
+        // Choose styles based on exam type
+        if ($type === 'Resmi' || $type === 'Official') {
+            $color = '#BE123C';
+            $badgeBg = 'rgba(190,18,60,0.1)';
+            $badgeColor = '#BE123C';
+        } elseif ($type === 'Simulasi') {
+            $color = '#4338CA';
+            $badgeBg = 'rgba(67,56,202,0.1)';
+            $badgeColor = '#4338CA';
+        } else {
+            $color = '#0F766E';
+            $badgeBg = 'rgba(15,118,110,0.1)';
+            $badgeColor = '#0F766E';
+        }
+
+        // Sum up total questions
+        $totalSoal = 0;
+        if (is_array($exam->settings) && isset($exam->settings['seksi'])) {
+            foreach ($exam->settings['seksi'] as $seksi) {
+                $totalSoal += $seksi['soal_count'] ?? 0;
+            }
+        }
+        if ($totalSoal === 0) {
+            $totalSoal = 100;
+        }
+
+        $tags = [];
+        if ($exam->category) {
+            $tags[] = $exam->category->name;
+        } else {
+            $tags = ['TWK', 'TIU', 'TKP', 'Acak'];
+        }
+
         return [
-            'id'           => 'exam-ongoing-001',
-            'title'        => 'SKD CPNS 2025 — Paket A',
-            'type'         => 'Official',
-            'duration'     => 90,
-            'passing_grade' => 65,
-            'total_soal'   => 110,
-            'answered'     => 42,
-            'progress_pct' => 38,
-            'sisa_waktu_s' => 5027,
+            'id'           => $exam->id,
+            'title'        => $exam->title,
+            'type'         => $type,
+            'duration'     => $exam->duration,
+            'passing_grade' => $exam->passing_grade,
+            'total_soal'   => $totalSoal,
+            'answered'     => 0,
+            'progress_pct' => 0,
+            'sisa_waktu_s' => $exam->duration * 60,
             'current_seksi'=> 'TWK',
-            'current_soal' => 21,
-            'tags'         => ['TWK', 'TIU', 'TKP', 'Acak'],
-            'color'        => '#BE123C',
-            'badge_bg'     => 'rgba(190,18,60,0.1)',
-            'badge_color'  => '#BE123C',
+            'current_soal' => 1,
+            'tags'         => $tags,
+            'color'        => $color,
+            'badge_bg'     => $badgeBg,
+            'badge_color'  => $badgeColor,
         ];
     }
 
-    private function getAvailableExams($user): array
+    private function getAvailableExams($user, $registeredExams): array
     {
-        $registeredExamTitle = null;
-        if (is_array($user->exam_data) && isset($user->exam_data['ujian'])) {
-            $registeredExamTitle = $user->exam_data['ujian'];
-        }
-
-        if (!$registeredExamTitle) {
-            return [];
-        }
-
-        // Query active exams matching the registered title
-        $exams = \App\Models\Exam::with('category')
-            ->where('title', $registeredExamTitle)
-            ->where('status', 'aktif')
-            ->get();
+        // Filter registered exams to those that are active
+        $exams = $registeredExams->filter(fn($e) => $e->status === 'aktif');
 
         return $exams->map(function ($exam) {
             $type = $exam->type ?? 'Latihan';
@@ -166,27 +212,123 @@ class PesertaDashboardController extends Controller
                 'badge_bg'      => $badgeBg,
                 'badge_color'   => $badgeColor,
             ];
-        })->toArray();
+        })->values()->toArray();
     }
 
-    private function getUpcomingSchedule($user): array
+    private function getUpcomingSchedule($user, $registeredExams): array
     {
-        return [
-            ['day' => '20', 'month' => 'Jun', 'title' => 'SKD CPNS Paket B',      'time' => '08:00 — 09:30 WIB', 'badge' => '2 hari lagi', 'badge_type' => 'soon'],
-            ['day' => '25', 'month' => 'Jun', 'title' => 'TIU — Verbal & Numerik','time' => '10:00 — 11:00 WIB', 'badge' => '7 hari',     'badge_type' => 'upcoming'],
-            ['day' => '30', 'month' => 'Jun', 'title' => 'TKP Final Assessment',  'time' => '13:00 — 14:30 WIB', 'badge' => '12 hari',    'badge_type' => 'upcoming'],
-        ];
+        $scheduled = $registeredExams->filter(fn($e) => $e->status === 'terjadwal');
+
+        return $scheduled->map(function ($exam) {
+            $startTime = $exam->start_time; // Carbon/DateTime object since it's cast as datetime
+            
+            $day = '1';
+            $month = 'Jun';
+            $timeLabel = '08:00 — 09:30 WIB';
+            $daysLeft = 'Segera';
+
+            if ($startTime) {
+                $day = $startTime->format('d');
+                $month = $startTime->format('M');
+                
+                $endTime = $exam->end_time;
+                $timeLabel = $startTime->format('H:i') . ($endTime ? ' — ' . $endTime->format('H:i') : '') . ' WIB';
+                
+                $diff = now()->diffInDays($startTime, false);
+                if ($diff <= 0) {
+                    $daysLeft = 'Hari ini';
+                } else {
+                    $daysLeft = $diff . ' hari lagi';
+                }
+            }
+
+            return [
+                'day' => $day,
+                'month' => $month,
+                'title' => $exam->title,
+                'time' => $timeLabel,
+                'badge' => $daysLeft,
+                'badge_type' => ($daysLeft === 'Hari ini' || str_contains($daysLeft, '1 ') || str_contains($daysLeft, '2 ')) ? 'soon' : 'upcoming',
+            ];
+        })->values()->toArray();
     }
 
-    private function getCategoryScores($user): array
+    private function getCategoryScores($user, $registeredExams): array
     {
-        return [
-            ['label' => 'TWK',     'value' => 82, 'max' => 100, 'gradient' => 'linear-gradient(90deg,#4338CA,#818CF8)'],
-            ['label' => 'TIU',     'value' => 78, 'max' => 100, 'gradient' => 'linear-gradient(90deg,#0F766E,#2DD4BF)'],
-            ['label' => 'TKP',     'value' => 91, 'max' => 100, 'gradient' => 'linear-gradient(90deg,#047857,#34D399)'],
-            ['label' => 'Verbal',  'value' => 70, 'max' => 100, 'gradient' => 'linear-gradient(90deg,#B45309,#FCD34D)'],
-            ['label' => 'Numerik', 'value' => 85, 'max' => 100, 'gradient' => 'linear-gradient(90deg,#5B21B6,#A78BFA)'],
+        if ($registeredExams->isEmpty()) {
+            return [];
+        }
+
+        // Define gradients for typical sections
+        $gradients = [
+            'TWK' => 'linear-gradient(90deg,#4338CA,#818CF8)',
+            'TIU' => 'linear-gradient(90deg,#0F766E,#2DD4BF)',
+            'TKP' => 'linear-gradient(90deg,#047857,#34D399)',
+            'Verbal' => 'linear-gradient(90deg,#B45309,#FCD34D)',
+            'Numerik' => 'linear-gradient(90deg,#5B21B6,#A78BFA)',
         ];
+
+        $categories = [];
+        foreach ($registeredExams as $exam) {
+            if (is_array($exam->settings) && isset($exam->settings['seksi'])) {
+                foreach ($exam->settings['seksi'] as $seksi) {
+                    $title = $seksi['title'];
+                    // Extract short label, e.g. "TWK — Tes Wawasan Kebangsaan" -> "TWK"
+                    $parts = explode('—', $title);
+                    if (count($parts) < 2) {
+                        $parts = explode('-', $title);
+                    }
+                    $label = trim($parts[0]);
+                    
+                    if (!isset($categories[$label])) {
+                        $categories[$label] = [
+                            'label' => $label,
+                            'max' => 100,
+                            'gradient' => $gradients[$label] ?? 'linear-gradient(90deg,#4F46E5,#818CF8)',
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Fallback to exam categories relation if settings->seksi is empty
+        if (empty($categories)) {
+            foreach ($registeredExams as $exam) {
+                if ($exam->category) {
+                    $label = $exam->category->name;
+                    if (!isset($categories[$label])) {
+                        $categories[$label] = [
+                            'label' => $label,
+                            'max' => 100,
+                            'gradient' => $gradients[$label] ?? 'linear-gradient(90deg,#4F46E5,#818CF8)',
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Map values from user history if available
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+        
+        $result = [];
+        foreach ($categories as $label => $cat) {
+            $value = 0;
+            // Search in history for a matching name
+            foreach ($riwayat as $r) {
+                $rName = $r['nama'] ?? '';
+                if (stripos($rName, $label) !== false) {
+                    $value = $r['nilai'] ?? 0;
+                    break;
+                }
+            }
+            
+            // No mock fallback values; default is 0 if not yet worked on
+
+            $cat['value'] = $value;
+            $result[] = $cat;
+        }
+
+        return $result;
     }
 
     private function getAchievements($user): array
@@ -205,12 +347,34 @@ class PesertaDashboardController extends Controller
 
     private function getExamHistory($user): array
     {
-        return [
-            ['title' => 'Simulasi SKD CPNS — Paket X', 'date' => '14 Jun 2025', 'score' => 97.5, 'score_class' => 'high', 'rank' => '🥇 #1',  'rank_class' => 'top', 'duration' => '72 menit', 'status' => 'Lulus',           'status_class' => 'lulus'],
-            ['title' => 'TKD PPPK Guru Batch 1',       'date' => '10 Jun 2025', 'score' => 89.0, 'score_class' => 'high', 'rank' => '🥈 #2',  'rank_class' => 'top', 'duration' => '58 menit', 'status' => 'Lulus',           'status_class' => 'lulus'],
-            ['title' => 'TWK Latihan — Kebangsaan',    'date' => '07 Jun 2025', 'score' => 76.5, 'score_class' => 'mid',  'rank' => '#5',      'rank_class' => '',    'duration' => '65 menit', 'status' => 'Lulus',           'status_class' => 'lulus'],
-            ['title' => 'TIU — Verbal & Numerik Sprint','date' => '03 Jun 2025', 'score' => 58.0, 'score_class' => 'low',  'rank' => '#18',     'rank_class' => '',    'duration' => '60 menit', 'status' => 'Tidak Lulus',     'status_class' => 'gagal'],
-            ['title' => 'Essay Kompetensi Teknis IT',  'date' => '01 Jun 2025', 'score' => null, 'score_class' => 'mid',  'rank' => '—',       'rank_class' => '',    'duration' => '50 menit', 'status' => 'Menunggu Nilai',  'status_class' => 'pending'],
-        ];
+        // Check if there is history in user's exam_data['riwayat']
+        if (is_array($user->exam_data) && !empty($user->exam_data['riwayat'])) {
+            return collect($user->exam_data['riwayat'])->map(function ($h) {
+                $score = $h['nilai'] ?? null;
+                $scoreClass = 'mid';
+                if ($score !== null) {
+                    if ($score >= 80) $scoreClass = 'high';
+                    elseif ($score < 60) $scoreClass = 'low';
+                }
+
+                $lulus = $h['lulus'] ?? false;
+                $status = $lulus ? 'Lulus' : 'Tidak Lulus';
+                $statusClass = $lulus ? 'lulus' : 'gagal';
+
+                return [
+                    'title' => $h['nama'] ?? 'Ujian',
+                    'date' => $h['tgl'] ?? '—',
+                    'score' => $score,
+                    'score_class' => $scoreClass,
+                    'rank' => '—',
+                    'rank_class' => '',
+                    'duration' => '—',
+                    'status' => $status,
+                    'status_class' => $statusClass,
+                ];
+            })->toArray();
+        }
+
+        return [];
     }
 }

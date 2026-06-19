@@ -13,6 +13,7 @@ interface PageProps {
     categories: CategoryItem[];
     auth: { user: { id: string; role: string; name: string } };
     flash?: { success?: string; error?: string };
+    [key: string]: any;
 }
 
 export default function KategoriIndex() {

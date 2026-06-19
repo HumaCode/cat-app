@@ -12,6 +12,15 @@ const renderSeksiIcon = (iconStr: string) => {
     return <span>{iconStr || '📝'}</span>;
 };
 
+const formatToLocal = (dateInput?: string | null) => {
+    if (!dateInput) return '';
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return '';
+
+    const pad = (num: number) => String(num).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 function CategorySearchableSelect({
     categories,
     value,
@@ -91,7 +100,7 @@ function CategorySearchableSelect({
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             autoFocus
-                            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12.5px', width: '100%' }}
+                            style={{ border: 'none', background: 'transparent', outline: 'none', boxShadow: 'none', fontSize: '12.5px', width: '100%' }}
                         />
                         <i className="bi bi-search" style={{ fontSize: '12px', color: 'var(--ink-4)' }} />
                     </div>
@@ -168,7 +177,7 @@ export default function ExamFormModal({
     const [newSeksiPassingGrade, setNewSeksiPassingGrade] = useState(0);
 
     // Initializing Inertia form state
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, transform, processing, errors, reset } = useForm({
         title: '',
         type: '',
         duration: 0,
@@ -192,12 +201,13 @@ export default function ExamFormModal({
             quota: 0,
             seksi: [] as Array<{
                 title: string;
+                category_id?: string;
                 icon: string;
                 soal_count: number;
                 duration: number;
                 correct_points: number;
                 incorrect_points: number;
-                passing_grade: number;
+                passing_grade?: number;
                 status: string;
             }>,
             participants: [] as string[]
@@ -214,8 +224,8 @@ export default function ExamFormModal({
                 duration: exam.duration || 0,
                 passing_grade: exam.passing_grade || 65,
                 category_id: exam.category_id || '',
-                start_time: exam.start_time ? exam.start_time.substring(0, 16) : '',
-                end_time: exam.end_time ? exam.end_time.substring(0, 16) : '',
+                start_time: formatToLocal(exam.start_time),
+                end_time: formatToLocal(exam.end_time),
                 instructions: exam.instructions || '',
                 settings: {
                     show_results: exam.settings?.show_results ?? true,
@@ -269,27 +279,37 @@ export default function ExamFormModal({
 
         const timer = setTimeout(() => {
             if (startTimeRef.current) {
-                startPicker = flatpickr(startTimeRef.current, {
-                    enableTime: true,
-                    time_24hr: true,
-                    dateFormat: "Y-m-d H:i",
-                    defaultDate: exam?.start_time ? exam.start_time.substring(0, 16) : undefined,
-                    onChange: (selectedDates, dateStr) => {
-                        setData('start_time', dateStr);
-                    }
-                });
+                const cleanDate = formatToLocal(exam?.start_time);
+                if ((startTimeRef.current as any)._flatpickr) {
+                    (startTimeRef.current as any)._flatpickr.setDate(cleanDate, false);
+                } else {
+                    startPicker = flatpickr(startTimeRef.current, {
+                        enableTime: true,
+                        time_24hr: true,
+                        dateFormat: "Y-m-d H:i",
+                        defaultDate: cleanDate || undefined,
+                        onChange: (selectedDates, dateStr) => {
+                            setData('start_time', dateStr);
+                        }
+                    });
+                }
             }
 
             if (endTimeRef.current) {
-                endPicker = flatpickr(endTimeRef.current, {
-                    enableTime: true,
-                    time_24hr: true,
-                    dateFormat: "Y-m-d H:i",
-                    defaultDate: exam?.end_time ? exam.end_time.substring(0, 16) : undefined,
-                    onChange: (selectedDates, dateStr) => {
-                        setData('end_time', dateStr);
-                    }
-                });
+                const cleanDate = formatToLocal(exam?.end_time);
+                if ((endTimeRef.current as any)._flatpickr) {
+                    (endTimeRef.current as any)._flatpickr.setDate(cleanDate, false);
+                } else {
+                    endPicker = flatpickr(endTimeRef.current, {
+                        enableTime: true,
+                        time_24hr: true,
+                        dateFormat: "Y-m-d H:i",
+                        defaultDate: cleanDate || undefined,
+                        onChange: (selectedDates, dateStr) => {
+                            setData('end_time', dateStr);
+                        }
+                    });
+                }
             }
         }, 50);
 
@@ -298,17 +318,17 @@ export default function ExamFormModal({
             if (startPicker) startPicker.destroy();
             if (endPicker) endPicker.destroy();
         };
-    }, [isOpen]);
+    }, [isOpen, currentStep, exam]);
 
     useEffect(() => {
         if (startTimeRef.current && (startTimeRef.current as any)._flatpickr) {
-            (startTimeRef.current as any)._flatpickr.setDate(data.start_time, false);
+            (startTimeRef.current as any)._flatpickr.setDate(formatToLocal(data.start_time), false);
         }
     }, [data.start_time]);
 
     useEffect(() => {
         if (endTimeRef.current && (endTimeRef.current as any)._flatpickr) {
-            (endTimeRef.current as any)._flatpickr.setDate(data.end_time, false);
+            (endTimeRef.current as any)._flatpickr.setDate(formatToLocal(data.end_time), false);
         }
     }, [data.end_time]);
 
@@ -383,6 +403,12 @@ export default function ExamFormModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
+            end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+        }));
 
         const options = {
             onSuccess: () => {
@@ -540,6 +566,169 @@ export default function ExamFormModal({
                                             <i className="bi bi-calendar-event" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-4)', pointerEvents: 'none' }}></i>
                                         </div>
                                     </div>
+                                </div>
+                                <div className="form-field">
+                                    <label className="form-label">Status Ujian <span className="req">*</span></label>
+                                    <style>{`
+                                        .status-radio-grid {
+                                            display: grid;
+                                            grid-template-columns: repeat(2, 1fr);
+                                            gap: 10px;
+                                        }
+                                        .status-radio-card {
+                                            position: relative;
+                                            cursor: pointer;
+                                            border-radius: 10px;
+                                            overflow: hidden;
+                                            transition: transform 0.18s ease, box-shadow 0.18s ease;
+                                        }
+                                        .status-radio-card:hover {
+                                            transform: translateY(-2px);
+                                        }
+                                        .status-radio-card input[type="radio"] {
+                                            position: absolute;
+                                            opacity: 0;
+                                            width: 0; height: 0;
+                                        }
+                                        .status-radio-inner {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 10px;
+                                            padding: 11px 14px;
+                                            border: 2px solid var(--border-2);
+                                            border-radius: 10px;
+                                            background: var(--surface);
+                                            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+                                            position: relative;
+                                            overflow: hidden;
+                                        }
+                                        .status-radio-inner::before {
+                                            content: '';
+                                            position: absolute;
+                                            inset: 0;
+                                            opacity: 0;
+                                            transition: opacity 0.2s;
+                                        }
+                                        .status-radio-card:hover .status-radio-inner {
+                                            border-color: var(--border);
+                                            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+                                        }
+                                        .status-radio-card input:checked ~ .status-radio-inner {
+                                            box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 15%, transparent);
+                                        }
+                                        .status-radio-card.s-draft input:checked ~ .status-radio-inner {
+                                            border-color: #94a3b8;
+                                            background: #f8fafc;
+                                            box-shadow: 0 0 0 3px rgba(148,163,184,0.18), 0 4px 16px rgba(148,163,184,0.15);
+                                        }
+                                        .status-radio-card.s-terjadwal input:checked ~ .status-radio-inner {
+                                            border-color: var(--indigo);
+                                            background: var(--indigo-s);
+                                            box-shadow: 0 0 0 3px rgba(99,102,241,0.18), 0 4px 16px rgba(99,102,241,0.15);
+                                        }
+                                        .status-radio-card.s-aktif input:checked ~ .status-radio-inner {
+                                            border-color: var(--emerald);
+                                            background: var(--emerald-s);
+                                            box-shadow: 0 0 0 3px rgba(16,185,129,0.18), 0 4px 16px rgba(16,185,129,0.15);
+                                        }
+                                        .status-radio-card.s-selesai input:checked ~ .status-radio-inner {
+                                            border-color: var(--teal);
+                                            background: color-mix(in srgb, var(--teal) 8%, transparent);
+                                            box-shadow: 0 0 0 3px rgba(20,184,166,0.18), 0 4px 16px rgba(20,184,166,0.15);
+                                        }
+                                        .status-radio-icon {
+                                            font-size: 20px;
+                                            line-height: 1;
+                                            flex-shrink: 0;
+                                            width: 32px; height: 32px;
+                                            display: flex; align-items: center; justify-content: center;
+                                            border-radius: 8px;
+                                            transition: transform 0.2s;
+                                        }
+                                        .status-radio-card:hover .status-radio-icon {
+                                            transform: scale(1.12);
+                                        }
+                                        .status-radio-card input:checked ~ .status-radio-inner .status-radio-icon {
+                                            transform: scale(1.18);
+                                        }
+                                        .status-radio-text { flex: 1; min-width: 0; }
+                                        .status-radio-label {
+                                            font-size: 12.5px;
+                                            font-weight: 700;
+                                            color: var(--ink);
+                                            line-height: 1.2;
+                                        }
+                                        .status-radio-desc {
+                                            font-size: 10.5px;
+                                            color: var(--ink-4);
+                                            margin-top: 2px;
+                                            line-height: 1.3;
+                                        }
+                                        .status-radio-check {
+                                            width: 18px; height: 18px;
+                                            border-radius: 50%;
+                                            border: 2px solid var(--border-2);
+                                            background: var(--surface);
+                                            display: flex; align-items: center; justify-content: center;
+                                            flex-shrink: 0;
+                                            transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+                                            position: relative;
+                                        }
+                                        .status-radio-check::after {
+                                            content: '';
+                                            width: 8px; height: 8px;
+                                            border-radius: 50%;
+                                            background: currentColor;
+                                            opacity: 0;
+                                            transform: scale(0);
+                                            transition: opacity 0.18s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+                                        }
+                                        .status-radio-card.s-draft input:checked ~ .status-radio-inner .status-radio-check {
+                                            border-color: #94a3b8; color: #94a3b8;
+                                        }
+                                        .status-radio-card.s-terjadwal input:checked ~ .status-radio-inner .status-radio-check {
+                                            border-color: var(--indigo); color: var(--indigo);
+                                        }
+                                        .status-radio-card.s-aktif input:checked ~ .status-radio-inner .status-radio-check {
+                                            border-color: var(--emerald); color: var(--emerald);
+                                        }
+                                        .status-radio-card.s-selesai input:checked ~ .status-radio-inner .status-radio-check {
+                                            border-color: var(--teal); color: var(--teal);
+                                        }
+                                        .status-radio-card input:checked ~ .status-radio-inner .status-radio-check::after {
+                                            opacity: 1;
+                                            transform: scale(1);
+                                        }
+                                    `}</style>
+                                    <div className="status-radio-grid">
+                                        {[
+                                            { value: 'draft',     cls: 's-draft',     emoji: '📝', label: 'Draft',     desc: 'Belum dipublikasikan' },
+                                            { value: 'terjadwal', cls: 's-terjadwal', emoji: '🗓️', label: 'Terjadwal', desc: 'Aktif saat waktu mulai' },
+                                            { value: 'aktif',     cls: 's-aktif',     emoji: '🟢', label: 'Aktif',     desc: 'Sedang berlangsung' },
+                                            { value: 'selesai',   cls: 's-selesai',   emoji: '✅', label: 'Selesai',   desc: 'Ujian telah berakhir' },
+                                        ].map(opt => (
+                                            <label key={opt.value} className={`status-radio-card ${opt.cls}`}>
+                                                <input
+                                                    type="radio"
+                                                    name="exam-status"
+                                                    value={opt.value}
+                                                    checked={data.status === opt.value}
+                                                    onChange={() => setData('status', opt.value)}
+                                                />
+                                                <div className="status-radio-inner">
+                                                    <div className="status-radio-icon">{opt.emoji}</div>
+                                                    <div className="status-radio-text">
+                                                        <div className="status-radio-label">{opt.label}</div>
+                                                        <div className="status-radio-desc">{opt.desc}</div>
+                                                    </div>
+                                                    <div className="status-radio-check" />
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: 'var(--ink-4)', marginTop: '6px', display: 'block' }}>
+                                        Pilih <strong>Terjadwal</strong> agar status otomatis berubah saat waktu mulai tiba.
+                                    </span>
                                 </div>
                                 <div className="form-field">
                                     <label className="form-label">Instruksi Ujian</label>

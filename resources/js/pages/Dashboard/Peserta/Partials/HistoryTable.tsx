@@ -60,32 +60,40 @@ export default function HistoryTable({ history }: HistoryTableProps) {
                         </tr>
                     </thead>
                     <tbody>
-                        {(history || []).map((item, idx) => (
-                            <tr key={idx}>
-                                <td><strong style={{ color: 'var(--ink)' }}>{item.title}</strong></td>
-                                <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
-                                    {item.date}
-                                </td>
-                                <td>
-                                    <span className={`score-pill ${item.score_class}`}>
-                                        {item.score !== null ? item.score.toFixed(1) : '—'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span className={`rank-num ${item.rank_class}`}>
-                                        {item.rank}
-                                    </span>
-                                </td>
-                                <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
-                                    {item.duration}
-                                </td>
-                                <td>
-                                    <span className={`result-badge ${item.status_class}`}>
-                                        {item.status}
-                                    </span>
+                        {history && history.length > 0 ? (
+                            history.map((item, idx) => (
+                                <tr key={idx}>
+                                    <td><strong style={{ color: 'var(--ink)' }}>{item.title}</strong></td>
+                                    <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
+                                        {item.date}
+                                    </td>
+                                    <td>
+                                        <span className={`score-pill ${item.score_class}`}>
+                                            {item.score !== null ? item.score.toFixed(1) : '—'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className={`rank-num ${item.rank_class}`}>
+                                            {item.rank}
+                                        </span>
+                                    </td>
+                                    <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
+                                        {item.duration}
+                                    </td>
+                                    <td>
+                                        <span className={`result-badge ${item.status_class}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: 'var(--ink-4)', fontSize: '13px' }}>
+                                    Belum ada riwayat ujian.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

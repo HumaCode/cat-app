@@ -193,3 +193,121 @@ test('adminB can view their own examB', function () {
         ->get(route('ujian.show', $this->examB->id))
         ->assertSuccessful();
 });
+
+// ─── Peserta policy & middleware ─────────────────────────────────────────────
+
+test('peserta can view exam if invited and in same institution', function () {
+    $peserta = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+    ]);
+
+    $exam = Exam::create([
+        'institution_id' => $this->institutionA->id,
+        'user_id' => $this->adminA->id,
+        'title' => 'Ujian Kominfo Khusus',
+        'type' => 'Simulasi',
+        'duration' => 60,
+        'status' => 'aktif',
+        'settings' => ['participants' => [$peserta->id], 'seksi' => []],
+    ]);
+
+    expect(Gate::forUser($peserta)->allows('view', $exam))->toBeTrue();
+});
+
+test('peserta cannot view exam if not invited', function () {
+    $peserta = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+    ]);
+
+    $exam = Exam::create([
+        'institution_id' => $this->institutionA->id,
+        'user_id' => $this->adminA->id,
+        'title' => 'Ujian Kominfo Khusus 2',
+        'type' => 'Simulasi',
+        'duration' => 60,
+        'status' => 'aktif',
+        'settings' => ['participants' => [], 'seksi' => []],
+    ]);
+
+    expect(Gate::forUser($peserta)->allows('view', $exam))->toBeFalse();
+});
+
+test('peserta cannot view exam of different institution even if ID matches', function () {
+    $peserta = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+    ]);
+
+    $exam = Exam::create([
+        'institution_id' => $this->institutionB->id,
+        'user_id' => $this->adminB->id,
+        'title' => 'Ujian Keuangan Khusus',
+        'type' => 'Simulasi',
+        'duration' => 60,
+        'status' => 'aktif',
+        'settings' => ['participants' => [$peserta->id], 'seksi' => []],
+    ]);
+
+    expect(Gate::forUser($peserta)->allows('view', $exam))->toBeFalse();
+});
+
+test('CanAccessExam middleware allows invited peserta of same institution', function () {
+    $peserta = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+    ]);
+
+    $exam = Exam::create([
+        'institution_id' => $this->institutionA->id,
+        'user_id' => $this->adminA->id,
+        'title' => 'Ujian Kominfo Khusus 3',
+        'type' => 'Simulasi',
+        'duration' => 60,
+        'status' => 'aktif',
+        'settings' => ['participants' => [$peserta->id], 'seksi' => []],
+    ]);
+
+    $request = Illuminate\Http\Request::create('/ujian/' . $exam->id, 'GET');
+    $request->setUserResolver(fn () => $peserta);
+
+    $route = mock(\Illuminate\Routing\Route::class);
+    $route->shouldReceive('parameter')->withAnyArgs()->andReturnUsing(fn($name) => $name === 'id' ? $exam->id : null);
+    $request->setRouteResolver(fn () => $route);
+
+    $middleware = new \App\Http\Middleware\CanAccessExam();
+    $response = $middleware->handle($request, fn () => new Illuminate\Http\Response('OK'));
+
+    expect($response->getContent())->toBe('OK');
+});
+
+test('CanAccessExam middleware aborts for uninvited peserta', function () {
+    $peserta = User::factory()->create([
+        'institution_id' => $this->institutionA->id,
+        'role' => 'peserta',
+    ]);
+
+    $exam = Exam::create([
+        'institution_id' => $this->institutionA->id,
+        'user_id' => $this->adminA->id,
+        'title' => 'Ujian Kominfo Khusus 4',
+        'type' => 'Simulasi',
+        'duration' => 60,
+        'status' => 'aktif',
+        'settings' => ['participants' => [], 'seksi' => []],
+    ]);
+
+    $request = Illuminate\Http\Request::create('/ujian/' . $exam->id, 'GET');
+    $request->setUserResolver(fn () => $peserta);
+
+    $route = mock(\Illuminate\Routing\Route::class);
+    $route->shouldReceive('parameter')->withAnyArgs()->andReturnUsing(fn($name) => $name === 'id' ? $exam->id : null);
+    $request->setRouteResolver(fn () => $route);
+
+    $middleware = new \App\Http\Middleware\CanAccessExam();
+
+    expect(fn () => $middleware->handle($request, fn () => 'OK'))
+        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class, 'Anda tidak terdaftar/diundang dalam ujian ini.');
+});
+

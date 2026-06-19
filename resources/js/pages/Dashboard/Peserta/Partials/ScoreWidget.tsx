@@ -37,28 +37,34 @@ export default function ScoreWidget({ scores }: ScoreWidgetProps) {
         <div ref={elementRef} className={`widget-card anim ${visible ? 'in' : ''}`}>
             <div className="widget-title">📊 Nilai per Kategori</div>
             <div className="score-history">
-                {(scores || []).map((score, idx) => {
-                    const widthPct = (score.value / score.max) * 100;
-                    return (
-                        <div key={idx} className="score-hist-item">
-                            <div className="score-hist-bar-wrap">
-                                <div className="score-hist-label">
-                                    {score.label} <span>{score.value} / {score.max}</span>
-                                </div>
-                                <div className="score-hist-track">
-                                    <div 
-                                        className="score-hist-fill" 
-                                        style={{ 
-                                            width: visible ? `${widthPct}%` : '0%', 
-                                            background: score.gradient,
-                                            transition: 'width 1s cubic-bezier(0.22, 1, 0.36, 1)'
-                                        }}
-                                    ></div>
+                {!scores || scores.length === 0 ? (
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--ink-3)', fontSize: '13.5px' }}>
+                        Tidak ada kategori ujian.
+                    </div>
+                ) : (
+                    scores.map((score, idx) => {
+                        const widthPct = (score.value / score.max) * 100;
+                        return (
+                            <div key={idx} className="score-hist-item">
+                                <div className="score-hist-bar-wrap">
+                                    <div className="score-hist-label">
+                                        {score.label} <span>{score.value} / {score.max}</span>
+                                    </div>
+                                    <div className="score-hist-track">
+                                        <div 
+                                            className="score-hist-fill" 
+                                            style={{ 
+                                                width: visible ? `${widthPct}%` : '0%', 
+                                                background: score.gradient,
+                                                transition: 'width 1s cubic-bezier(0.22, 1, 0.36, 1)'
+                                            }}
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
         </div>
     );

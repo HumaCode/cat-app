@@ -11,6 +11,36 @@ interface KpiCardsProps {
 }
 
 export default function KpiCards({ stats }: KpiCardsProps) {
+    const total = stats.total || 0;
+
+    // Derived context labels
+    const aktifFooter  = stats.aktif === 0
+        ? 'Tidak ada ujian yang sedang berjalan'
+        : stats.aktif === 1
+            ? '1 ujian sedang dikerjakan peserta'
+            : `${stats.aktif} ujian sedang dikerjakan peserta`;
+
+    const terjadwalFooter = stats.terjadwal === 0
+        ? 'Tidak ada ujian yang dijadwalkan'
+        : stats.terjadwal === 1
+            ? '1 ujian menunggu waktu mulai'
+            : `${stats.terjadwal} ujian menunggu waktu mulai`;
+
+    const draftFooter = stats.draft === 0
+        ? 'Semua ujian telah dipublikasikan'
+        : stats.draft === 1
+            ? '1 ujian menunggu kelengkapan soal'
+            : `${stats.draft} ujian menunggu kelengkapan soal`;
+
+    const selesaiFooter = stats.selesai === 0
+        ? 'Belum ada ujian yang selesai'
+        : stats.selesai === 1
+            ? '1 ujian telah ditutup'
+            : `${stats.selesai} ujian telah ditutup`;
+
+    // Percentage of each type from total
+    const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+
     return (
         <div className="kpi-grid">
             {/* Active Exams */}
@@ -20,8 +50,12 @@ export default function KpiCards({ stats }: KpiCardsProps) {
                     <div className="kpi-icon-box">▶️</div>
                 </div>
                 <div className="kpi-num">{stats.aktif}</div>
-                <span className="kpi-trend up">↑ Sesi sedang aktif</span>
-                <div className="kpi-footer">Ujian sedang dikerjakan peserta</div>
+                {stats.aktif > 0 ? (
+                    <span className="kpi-trend up">↑ {pct(stats.aktif)}% dari total ujian</span>
+                ) : (
+                    <span className="kpi-trend neutral">— Tidak ada sesi aktif</span>
+                )}
+                <div className="kpi-footer">{aktifFooter}</div>
             </div>
 
             {/* Scheduled Exams */}
@@ -31,8 +65,12 @@ export default function KpiCards({ stats }: KpiCardsProps) {
                     <div className="kpi-icon-box">🗓️</div>
                 </div>
                 <div className="kpi-num">{stats.terjadwal}</div>
-                <span className="kpi-trend amber">→ Mulai waktu dekat</span>
-                <div className="kpi-footer">Telah diatur tanggal mulainya</div>
+                {stats.terjadwal > 0 ? (
+                    <span className="kpi-trend amber">→ {pct(stats.terjadwal)}% dari total ujian</span>
+                ) : (
+                    <span className="kpi-trend neutral">— Belum ada jadwal</span>
+                )}
+                <div className="kpi-footer">{terjadwalFooter}</div>
             </div>
 
             {/* Draft Exams */}
@@ -42,8 +80,12 @@ export default function KpiCards({ stats }: KpiCardsProps) {
                     <div className="kpi-icon-box">✏️</div>
                 </div>
                 <div className="kpi-num">{stats.draft}</div>
-                <span className="kpi-trend amber">⚠ Belum dipublikasikan</span>
-                <div className="kpi-footer">Menunggu kelengkapan soal</div>
+                {stats.draft > 0 ? (
+                    <span className="kpi-trend amber">⚠ {pct(stats.draft)}% belum dipublikasikan</span>
+                ) : (
+                    <span className="kpi-trend up">✓ Semua ujian siap</span>
+                )}
+                <div className="kpi-footer">{draftFooter}</div>
             </div>
 
             {/* Completed Exams */}
@@ -53,8 +95,12 @@ export default function KpiCards({ stats }: KpiCardsProps) {
                     <div className="kpi-icon-box">✅</div>
                 </div>
                 <div className="kpi-num">{stats.selesai}</div>
-                <span className="kpi-trend up">↑ Hasil tersimpan aman</span>
-                <div className="kpi-footer">Riwayat ujian telah ditutup</div>
+                {stats.selesai > 0 ? (
+                    <span className="kpi-trend up">↑ {pct(stats.selesai)}% dari total ujian</span>
+                ) : (
+                    <span className="kpi-trend neutral">— Belum ada yang selesai</span>
+                )}
+                <div className="kpi-footer">{selesaiFooter}</div>
             </div>
         </div>
     );

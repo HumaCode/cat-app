@@ -57,8 +57,12 @@ export default function HeroBanner({
                         <div className="hero-meta-item">🏢 {instansi}</div>
                         <div className="hero-meta-dot"></div>
                         <div className="hero-meta-item">📋 {batch}</div>
-                        <div className="hero-meta-dot"></div>
-                        <div className="hero-meta-item">🎯 {sisaUjian} ujian tersisa</div>
+                        {sisaUjian > 0 && (
+                            <>
+                                <div className="hero-meta-dot"></div>
+                                <div className="hero-meta-item">🎯 {sisaUjian} ujian tersisa</div>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -91,10 +95,10 @@ export default function HeroBanner({
                             <div className="score-num" id="heroScore">
                                 {animatedScore.toFixed(1)}
                             </div>
-                            <div className="score-lbl">avg score</div>
+                            <div className="score-lbl">terakhir</div>
                         </div>
                     </div>
-                    <div className="score-title">Rata-rata nilai<br />3 ujian terakhir</div>
+                    <div className="score-title">Nilai ujian<br />terakhir</div>
                 </div>
             </div>
         </div>

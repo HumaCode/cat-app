@@ -35,8 +35,20 @@ class ExamPolicy
      */
     public function view(User $user, Exam $exam): bool
     {
-        return $user->role === 'admin'
-            && $exam->institution_id === $user->institution_id;
+        if ($exam->institution_id !== $user->institution_id) {
+            return false;
+        }
+
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($user->role === 'peserta') {
+            return is_array($exam->settings)
+                && in_array($user->id, $exam->settings['participants'] ?? []);
+        }
+
+        return false;
     }
 
     /**

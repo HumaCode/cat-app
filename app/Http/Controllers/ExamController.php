@@ -41,11 +41,13 @@ class ExamController extends Controller
 
         $categories = $this->categoryService->getCategoriesByInstitution($institutionId);
         $stats      = $this->examService->getExamStats($institutionId);
+        $live       = $this->examService->getLiveStats($institutionId);
 
         return Inertia::render('ManajemenUjian/Index', [
             'exams'      => $exams,
             'categories' => $categories,
             'stats'      => $stats,
+            'live'       => $live,
             'filters'    => (object) $filters,
         ]);
     }

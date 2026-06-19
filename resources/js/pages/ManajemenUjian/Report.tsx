@@ -499,7 +499,7 @@ export default function Report({ exam, participants = [] }: ReportProps) {
 
                 {/* ── ATTEMPT SHEET DETAIL MODAL ── */}
                 {selectedParticipant && (
-                    <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={() => setSelectedParticipant(null)}>
+                    <div className="modal-overlay open" style={{ zIndex: 1000 }} onClick={() => setSelectedParticipant(null)}>
                         <div className="modal-container" style={{ width: '800px', maxWidth: '90%' }} onClick={e => e.stopPropagation()}>
                             {/* Modal Header */}
                             <div className="modal-header">

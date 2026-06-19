@@ -251,7 +251,7 @@ function SearchableSelect({
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             autoFocus
-                            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12.5px', width: '100%' }}
+                            style={{ border: 'none', background: 'transparent', outline: 'none', boxShadow: 'none', fontSize: '12.5px', width: '100%' }}
                         />
                         <i className="bi bi-search" style={{ fontSize: '12px', color: 'var(--ink-4)' }} />
                     </div>
@@ -645,7 +645,7 @@ export default function ExamShow({ exam, categories = [], participants = [], ava
                                                 placeholder="Cari nama / email..."
                                                 value={searchRegistered}
                                                 onChange={e => setSearchRegistered(e.target.value)}
-                                                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12.5px', width: '160px' }}
+                                                style={{ border: 'none', background: 'transparent', outline: 'none', boxShadow: 'none', fontSize: '12.5px', width: '160px' }}
                                             />
                                             <i className="bi bi-search" style={{ fontSize: '13px', color: 'var(--ink-4)', cursor: 'default' }} />
                                         </div>
@@ -917,7 +917,7 @@ export default function ExamShow({ exam, categories = [], participants = [], ava
                                             placeholder="Cari berdasarkan nama / email / NIP..."
                                             value={searchAvailable}
                                             onChange={e => setSearchAvailable(e.target.value)}
-                                            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%' }}
+                                            style={{ border: 'none', background: 'transparent', outline: 'none', boxShadow: 'none', fontSize: '13px', width: '100%' }}
                                         />
                                         <i className="bi bi-search" style={{ fontSize: '13px', color: 'var(--ink-4)', cursor: 'default' }} />
                                     </div>
@@ -1070,7 +1070,7 @@ export default function ExamShow({ exam, categories = [], participants = [], ava
 
             {/* Confirm Delete Participant Modal */}
             {deleteConfirmTarget && isMounted && createPortal(
-                <div className="modal-overlay" onClick={() => setDeleteConfirmTarget(null)}>
+                <div className="modal-overlay open" onClick={() => setDeleteConfirmTarget(null)}>
                     <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                         <div className="modal-icon-wrap" style={{ background: 'var(--rose-s)', color: 'var(--rose)' }}>🗑️</div>
                         <h3 className="modal-title">Hapus Peserta?</h3>

@@ -4,6 +4,7 @@ import ParticleCanvas from '@/Components/ParticleCanvas';
 import Sidebar from './Partials/Sidebar';
 import Topbar from './Partials/Topbar';
 import Footer from './Partials/Footer';
+import LogoutConfirmModal from '@/Components/LogoutConfirmModal';
 import '../../css/dashboard-global.css';
 
 interface AuthenticatedProps {
@@ -64,44 +65,13 @@ export default function AuthenticatedLayout({
                 <Footer />
             </div>
 
-            {/* Custom Interactive Logout Modal (Root Level) */}
-            {showLogoutModal && (
-                <div 
-                    className="modal-overlay" 
-                    onClick={() => !isLoggingOut && setShowLogoutModal(false)}
-                >
-                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-icon-wrap">⚠️</div>
-                        <h3 className="modal-title">Konfirmasi Keluar</h3>
-                        <p className="modal-desc">
-                            Apakah Anda yakin ingin keluar dari <strong>CAT System</strong>? Sesi Anda akan berakhir dan Anda perlu login kembali.
-                        </p>
-                        <div className="modal-actions">
-                            <button 
-                                className="btn-modal cancel" 
-                                onClick={() => setShowLogoutModal(false)}
-                                disabled={isLoggingOut}
-                            >
-                                Batal
-                            </button>
-                            <button 
-                                className="btn-modal confirm" 
-                                onClick={handleLogoutConfirm}
-                                disabled={isLoggingOut}
-                            >
-                                {isLoggingOut ? (
-                                    <>
-                                        <span className="spinner"></span>
-                                        Sedang proses...
-                                    </>
-                                ) : (
-                                    'Ya, Keluar'
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Custom Reusable Logout Modal */}
+            <LogoutConfirmModal
+                isOpen={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+                onConfirm={handleLogoutConfirm}
+                isLoading={isLoggingOut}
+            />
         </div>
     );
 }

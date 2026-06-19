@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Exam;
 use App\Repositories\Interfaces\ExamRepositoryInterface;
+use Carbon\CarbonImmutable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -56,8 +57,16 @@ class ExamService
             $data['settings'] = array_merge($existingSettings, $data['settings']);
         }
 
-        // Update status if dates or status are explicitly changed
-        if (isset($data['start_time']) || isset($data['end_time'])) {
+        // Recalculate status whenever dates or status field is explicitly changed
+        if (isset($data['start_time']) || isset($data['end_time']) || isset($data['status'])) {
+            // Merge existing dates so determineStatus has full context
+            if (!isset($data['start_time']) || !isset($data['end_time'])) {
+                $existing = $existing ?? $this->examRepo->findById($id, $institutionId);
+                if ($existing) {
+                    $data['start_time'] = $data['start_time'] ?? $existing->start_time;
+                    $data['end_time']   = $data['end_time']   ?? $existing->end_time;
+                }
+            }
             $data['status'] = $this->determineStatus($data);
         }
 
@@ -75,49 +84,91 @@ class ExamService
     }
 
     /**
+     * Get real-time live monitoring data scoped to the institution.
+     */
+    public function getLiveStats(string $institutionId): array
+    {
+        $user = auth()->user();
+
+        // Resolve base query scoped to institution
+        if ($user && $user->role === 'dev') {
+            $base = \App\Models\Exam::query();
+        } else {
+            $base = \App\Models\Exam::where('institution_id', $institutionId);
+        }
+
+        // All active exams
+        $activeExams = (clone $base)->where('status', 'aktif')->get();
+
+        // Sum up participants across all active exams
+        $activeParticipants = 0;
+        foreach ($activeExams as $exam) {
+            $activeParticipants += count($exam->settings['participants'] ?? []);
+        }
+
+        // Total participants registered across ALL institution exams
+        $allExams = (clone $base)->get();
+        $allParticipantIds = collect();
+        foreach ($allExams as $exam) {
+            $allParticipantIds = $allParticipantIds->merge($exam->settings['participants'] ?? []);
+        }
+        $totalParticipants = $allParticipantIds->unique()->count();
+
+        // First active exam's progress (window-based: start_time → end_time)
+        $firstActive = $activeExams->first();
+        $activeExamTitle   = null;
+        $progressPercent   = 0;
+
+        if ($firstActive && $firstActive->start_time) {
+            $activeExamTitle = $firstActive->title;
+
+            if ($firstActive->end_time) {
+                // Progress = elapsed portion of the exam WINDOW (start → end)
+                $start   = $firstActive->start_time->timestamp;
+                $end     = $firstActive->end_time->timestamp;
+                $now     = now()->timestamp;
+                $window  = $end - $start;
+                $elapsed = $now - $start;
+
+                $progressPercent = $window > 0
+                    ? (int) min(100, max(0, round(($elapsed / $window) * 100)))
+                    : 0;
+            } else {
+                // No end_time set — show 0% (unknown window)
+                $progressPercent = 0;
+            }
+        }
+
+        return [
+            'active_exams'       => $activeExams->count(),
+            'active_participants' => $activeParticipants,
+            'total_participants'  => $totalParticipants,
+            'active_exam_title'   => $activeExamTitle,
+            'progress_percent'    => $progressPercent,
+        ];
+    }
+
+    /**
      * Get default settings for an exam.
+     * Note: seksi is intentionally empty — admins configure sections manually in Step 3.
      */
     protected function getDefaultSettings(): array
     {
         return [
-            'show_results' => true,
-            'show_answers' => false,
-            'shuffle_questions' => true,
-            'shuffle_options' => true,
-            'lockdown_mode' => true,
-            'activity_logging' => true,
-            'attempts_limit' => 1,
-            'access_type' => 'Hanya peserta terdaftar',
-            'seksi' => [
-                [
-                    'title' => 'TWK — Tes Wawasan Kebangsaan',
-                    'icon' => '📚',
-                    'soal_count' => 30,
-                    'duration' => 30,
-                    'correct_points' => 5,
-                    'incorrect_points' => 0,
-                    'status' => 'aktif'
-                ],
-                [
-                    'title' => 'TIU — Tes Intelegensia Umum',
-                    'icon' => '🔢',
-                    'soal_count' => 35,
-                    'duration' => 35,
-                    'correct_points' => 5,
-                    'incorrect_points' => 0,
-                    'status' => 'aktif'
-                ],
-                [
-                    'title' => 'TKP — Tes Karakteristik Pribadi',
-                    'icon' => '❤️',
-                    'soal_count' => 45,
-                    'duration' => 35,
-                    'correct_points' => 5,
-                    'incorrect_points' => 0,
-                    'status' => 'aktif'
-                ]
-            ],
-            'participants' => [] // Store registered user IDs
+            'show_results'       => true,
+            'show_answers'       => false,
+            'shuffle_questions'  => true,
+            'shuffle_options'    => true,
+            'lockdown_mode'      => true,
+            'activity_logging'   => true,
+            'attempts_limit'     => 1,
+            'access_type'        => 'Hanya peserta terdaftar',
+            'passing_grade_type' => 'total',
+            'participant_method' => 'Pilih dari daftar pengguna',
+            'filter_institution' => 'Semua institusi',
+            'quota'              => 0,
+            'seksi'              => [],
+            'participants'       => [],
         ];
     }
 

@@ -35,3 +35,55 @@ test('peserta can access peserta dashboard', function () {
         ->get(route('dashboard.peserta'))
         ->assertStatus(200);
 });
+
+test('peserta dashboard shows empty state when not registered to any exam', function () {
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('dashboard.peserta'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/Index')
+            ->where('isRegistered', false)
+            ->where('ongoingExam', null)
+            ->where('availableExams', [])
+        );
+});
+
+test('peserta dashboard shows exam when registered to an exam', function () {
+    $institution = \App\Models\Institution::create([
+        'name' => 'Test Institution',
+        'slug' => 'test-institution',
+    ]);
+
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+        'institution_id' => $institution->id,
+    ]);
+
+    $exam = \App\Models\Exam::create([
+        'institution_id' => $institution->id,
+        'user_id' => $peserta->id,
+        'title' => 'Ujian Akhir Semester',
+        'type' => 'Simulasi',
+        'duration' => 100,
+        'passing_grade' => 65,
+        'status' => 'aktif',
+        'settings' => [
+            'participants' => [$peserta->id],
+            'show_answers' => true,
+        ],
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('dashboard.peserta'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/Index')
+            ->where('isRegistered', true)
+            ->where('ongoingExam.title', 'Ujian Akhir Semester')
+            ->has('availableExams', 1)
+        );
+});

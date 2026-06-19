@@ -132,6 +132,15 @@ class ExamSeeder extends Seeder
         ];
 
         foreach ($exams as $exam) {
+            // Find participants registered to this exam in UserSeeder
+            $participantIds = User::where('role', 'peserta')
+                ->get()
+                ->filter(function ($u) use ($exam) {
+                    return is_array($u->exam_data) && isset($u->exam_data['ujian']) && $u->exam_data['ujian'] === $exam['title'];
+                })
+                ->pluck('id')
+                ->toArray();
+
             Exam::create([
                 'institution_id' => $institution->id,
                 'user_id' => $admin->id,
@@ -181,7 +190,7 @@ class ExamSeeder extends Seeder
                             'status' => 'aktif'
                         ]
                     ],
-                    'participants' => []
+                    'participants' => array_values($participantIds)
                 ]
             ]);
         }

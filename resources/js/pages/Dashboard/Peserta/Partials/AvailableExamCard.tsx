@@ -53,7 +53,7 @@ export default function AvailableExamCard({ exams }: AvailableExamCardProps) {
     }
 
     return (
-        <div ref={elementRef} className={`exam-stack anim ${visible ? 'in' : ''}`}>
+        <div ref={elementRef} className={`exam-grid-4 anim ${visible ? 'in' : ''}`}>
             {(exams || []).map((exam) => (
                 <div 
                     key={exam.id} 

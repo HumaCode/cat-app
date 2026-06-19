@@ -30,6 +30,19 @@ export default function MotivationBanner({
         return () => observer.disconnect();
     }, []);
 
+    const hasRank = ranking && ranking !== '—' && ranking !== '';
+    const title = hasRank 
+        ? <>Kamu berada di peringkat <em>{ranking}</em> minggu ini — pertahankan! 🔥</>
+        : <>Ayo mulai ujian pertamamu dan tunjukkan kemampuan terbaikmu! 🚀</>;
+
+    const sub = hasRank
+        ? (ujianTersisa > 0 
+            ? `Masih ada ${ujianTersisa} ujian simulasi yang bisa meningkatkan skormu sebelum seleksi resmi.` 
+            : `Semua ujian simulasi telah selesai dikerjakan! Tetap pantau pengumuman selanjutnya.`)
+        : (ujianTersisa > 0 
+            ? `Ada ${ujianTersisa} ujian simulasi yang siap kamu kerjakan untuk melatih kesiapanmu.` 
+            : `Belum ada ujian simulasi yang tersedia saat ini.`);
+
     return (
         <div 
             ref={elementRef}
@@ -37,13 +50,13 @@ export default function MotivationBanner({
         >
             <div className="moti-text">
                 <div className="moti-title">
-                    Kamu berada di peringkat <em>{ranking}</em> minggu ini — pertahankan! 🔥
+                    {title}
                 </div>
                 <div className="moti-sub">
-                    Masih ada {ujianTersisa} ujian simulasi yang bisa meningkatkan skormu sebelum seleksi resmi.
+                    {sub}
                 </div>
             </div>
-            <button className="moti-cta">Latihan Sekarang →</button>
+            {ujianTersisa > 0 && <button className="moti-cta">Latihan Sekarang →</button>}
         </div>
     );
 }

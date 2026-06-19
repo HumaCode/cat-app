@@ -6,7 +6,6 @@ import OngoingExamCard from './Partials/OngoingExamCard';
 import AvailableExamCard from './Partials/AvailableExamCard';
 import ScheduleWidget from './Partials/ScheduleWidget';
 import ScoreWidget from './Partials/ScoreWidget';
-import AchievementWidget from './Partials/AchievementWidget';
 import HistoryTable from './Partials/HistoryTable';
 
 interface PesertaDashboardProps {
@@ -30,6 +29,7 @@ interface PesertaDashboardProps {
     categoryScores: any[];
     achievements: any[];
     history: any[];
+    isRegistered: boolean;
 }
 
 export default function PesertaDashboard({
@@ -41,6 +41,7 @@ export default function PesertaDashboard({
     categoryScores,
     achievements,
     history,
+    isRegistered,
 }: PesertaDashboardProps) {
     // Get user initials
     const nameParts = user.name.split(' ');
@@ -59,7 +60,7 @@ export default function PesertaDashboard({
                 name={user.name}
                 instansi={user.instansi}
                 batch={user.jabatan}
-                sisaUjian={3}
+                sisaUjian={availableExams.length}
                 avgScore={stats.avg_score}
             />
 
@@ -70,33 +71,47 @@ export default function PesertaDashboard({
             <div className="content-wrap">
                 
                 {/* Motivation banner */}
-                <MotivationBanner 
-                    ranking={stats.ranking}
-                    ujianTersisa={3}
-                />
+                {isRegistered && (
+                    <MotivationBanner 
+                        ranking={stats.ranking}
+                        ujianTersisa={availableExams.length}
+                    />
+                )}
 
                 {/* Main grid */}
                 <div className="main-grid">
                     
                     {/* Left Column: Exams */}
                     <div>
-                        {/* Ongoing Section */}
-                        {ongoingExam && (
+                        {isRegistered ? (
                             <>
-                                <div className="sec-head">
-                                    <div className="sec-title">
-                                        <span 
-                                            className="sec-title-dot" 
-                                            style={{ 
-                                                background: 'var(--rose)',
-                                                boxShadow: '0 0 6px rgba(190,18,60,0.5)'
-                                            }}
-                                        ></span>
-                                        Sedang Berlangsung
-                                    </div>
-                                </div>
-                                <OngoingExamCard exam={ongoingExam} />
+                                {/* Ongoing Section */}
+                                {ongoingExam && (
+                                    <>
+                                        <div className="sec-head">
+                                            <div className="sec-title">
+                                                <span 
+                                                    className="sec-title-dot" 
+                                                    style={{ 
+                                                        background: 'var(--rose)',
+                                                        boxShadow: '0 0 6px rgba(190,18,60,0.5)'
+                                                    }}
+                                                ></span>
+                                                Sedang Berlangsung
+                                            </div>
+                                        </div>
+                                        <OngoingExamCard exam={ongoingExam} />
+                                    </>
+                                )}
                             </>
+                        ) : (
+                            <div className="peserta-empty-state">
+                                <div className="peserta-empty-icon">📋</div>
+                                <h3 className="peserta-empty-title">Belum Terdaftar pada Ujian</h3>
+                                <p className="peserta-empty-desc">
+                                    Anda saat ini belum terdaftar pada ujian apapun. Silakan hubungi administrator atau panitia penyelenggara untuk mendaftarkan Anda ke ujian yang tersedia.
+                                </p>
+                            </div>
                         )}
                     </div>
 
@@ -104,22 +119,23 @@ export default function PesertaDashboard({
                     <div className="right-col">
                         <ScheduleWidget schedule={schedule} />
                         <ScoreWidget scores={categoryScores} />
-                        <AchievementWidget achievements={achievements} />
                     </div>
 
                 </div>
 
                 {/* Available Exams Section (Full Width) */}
-                <div>
-                    <div className="sec-head" style={{ marginTop: '12px' }}>
-                        <div className="sec-title">
-                            <span className="sec-title-dot" style={{ background: 'var(--indigo)' }}></span>
-                            Ujian Tersedia
+                {isRegistered && availableExams && availableExams.length > 0 && (
+                    <div>
+                        <div className="sec-head" style={{ marginTop: '12px' }}>
+                            <div className="sec-title">
+                                <span className="sec-title-dot" style={{ background: 'var(--indigo)' }}></span>
+                                Ujian Tersedia
+                            </div>
+                            <a className="sec-link">Lihat semua →</a>
                         </div>
-                        <a className="sec-link">Lihat semua →</a>
+                        <AvailableExamCard exams={availableExams} />
                     </div>
-                    <AvailableExamCard exams={availableExams} />
-                </div>
+                )}
 
                 {/* Bottom Row: History Table */}
                 <HistoryTable history={history} />

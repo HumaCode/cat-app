@@ -59,6 +59,7 @@ interface Paginator {
     to: number;
     total: number;
     per_page: number;
+    last_page?: number;
     links: Array<{
         url: string | null;
         label: string;

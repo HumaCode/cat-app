@@ -7,6 +7,7 @@ export interface ExamItem {
     start_time: string | null;
     end_time: string | null;
     instructions: string | null;
+    category_id: string | null;
     settings: {
         show_results?: boolean;
         show_answers?: boolean;
@@ -16,6 +17,10 @@ export interface ExamItem {
         activity_logging?: boolean;
         attempts_limit?: number;
         access_type?: string;
+        passing_grade_type?: string;
+        participant_method?: string;
+        filter_institution?: string;
+        quota?: number;
         seksi?: Array<{
             title: string;
             category_id?: string;

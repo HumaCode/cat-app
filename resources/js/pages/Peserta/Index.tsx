@@ -93,6 +93,7 @@ export default function PesertaIndex() {
 
     // Filter states with defensive type checking to handle PHP serialization quirks (e.g., empty associative array serializing to JS array where filters.sort is a function)
     const [searchVal, setSearchVal] = useState(typeof filters?.search === 'string' ? filters.search : '');
+    const [localSearch, setLocalSearch] = useState(typeof filters?.search === 'string' ? filters.search : '');
     const [statusFilter, setStatusFilter] = useState(typeof filters?.status === 'string' ? filters.status : 'all');
     const [ujianFilter, setUjianFilter] = useState(typeof filters?.ujian === 'string' ? filters.ujian : 'all');
     const [instansiFilter, setInstansiFilter] = useState(typeof filters?.instansi === 'string' ? filters.instansi : 'all');
@@ -132,12 +133,11 @@ export default function PesertaIndex() {
     // Filter updates
     const applyFilters = (newFilters: Record<string, string>) => {
         const queryParams = {
-            search: searchVal,
-            status: statusFilter,
-            ujian: ujianFilter,
-            instansi: instansiFilter,
-            sort: sortFilter,
-            ...newFilters,
+            search: newFilters.search !== undefined ? newFilters.search : searchVal,
+            status: newFilters.status !== undefined ? newFilters.status : statusFilter,
+            ujian: newFilters.ujian !== undefined ? newFilters.ujian : ujianFilter,
+            instansi: newFilters.instansi !== undefined ? newFilters.instansi : instansiFilter,
+            sort: newFilters.sort !== undefined ? newFilters.sort : sortFilter,
         };
 
         // Remove empty filters
@@ -155,8 +155,27 @@ export default function PesertaIndex() {
 
     const handleSearchSubmit = (e: FormEvent) => {
         e.preventDefault();
-        applyFilters({ search: searchVal });
+        setSearchVal(localSearch);
+        applyFilters({ search: localSearch });
     };
+
+    // Debounce typing in the search bar
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== (filters?.search || '')) {
+                setSearchVal(localSearch);
+                applyFilters({ search: localSearch });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [localSearch]);
+
+    // Keep local search and query filters synced when they change
+    useEffect(() => {
+        const currentSearch = typeof filters?.search === 'string' ? filters.search : '';
+        setSearchVal(currentSearch);
+        setLocalSearch(currentSearch);
+    }, [filters?.search]);
 
     const handleStatusChange = (status: string) => {
         setStatusFilter(status);
@@ -165,6 +184,7 @@ export default function PesertaIndex() {
 
     const handleResetFilters = () => {
         setSearchVal('');
+        setLocalSearch('');
         setStatusFilter('all');
         setUjianFilter('all');
         setInstansiFilter('all');
@@ -474,8 +494,9 @@ export default function PesertaIndex() {
                             <input
                                 type="text"
                                 placeholder="Cari nama, email, nip..."
-                                value={searchVal}
-                                onChange={(e) => setSearchVal(e.target.value)}
+                                value={localSearch}
+                                onChange={(e) => setLocalSearch(e.target.value)}
+                                style={{ outline: 'none', boxShadow: 'none', border: 'none', background: 'transparent' }}
                             />
                         </div>
                     </form>
@@ -870,7 +891,7 @@ function SearchableSelect({ value, onChange, placeholder, options }: SearchableS
                         minWidth: '220px'
                     }}
                 >
-                    <div style={{ padding: '6px', borderBottom: '1px solid var(--border-2)', background: 'var(--surface-2)' }}>
+                    <div style={{ padding: '6px', borderBottom: '1px solid var(--border-2)', background: 'var(--surface-2)', position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             type="text"
                             placeholder="Cari..."
@@ -879,17 +900,19 @@ function SearchableSelect({ value, onChange, placeholder, options }: SearchableS
                             style={{
                                 width: '100%',
                                 fontSize: '12px',
-                                padding: '4px 8px',
+                                padding: '4px 28px 4px 8px',
                                 height: '28px',
                                 border: '1px solid var(--border)',
                                 borderRadius: 'var(--r-2xs)',
                                 background: 'var(--surface)',
                                 outline: 'none',
+                                boxShadow: 'none',
                                 color: 'var(--ink)'
                             }}
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
                         />
+                        <i className="bi bi-search" style={{ position: 'absolute', right: '14px', fontSize: '11px', color: 'var(--ink-4)', pointerEvents: 'none' }} />
                     </div>
                     <div style={{ overflowY: 'auto', flex: 1, padding: '3px 0' }}>
                         {filteredOptions.length === 0 ? (
