@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\Dashboard\PesertaDashboardController;
+use App\Http\Controllers\Peserta\PesertaExamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,7 +23,10 @@ Route::get('/', function () {
 
 Route::post('/webhooks/xendit', [XenditWebhookController::class, 'handle'])->name('webhooks.xendit');
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+    if ($request->user() && $request->user()->role === 'peserta') {
+        return redirect()->route('dashboard.peserta');
+    }
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -35,6 +39,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/peserta', [PesertaDashboardController::class, 'index'])
         ->middleware('role:peserta')
         ->name('dashboard.peserta');
+
+    // Ujian Peserta — exam-taking experience
+    Route::middleware(['role:peserta', 'exam.access'])->group(function () {
+        Route::get('/peserta/ujian/{examId}', [PesertaExamController::class, 'show'])
+            ->name('peserta.ujian.show');
+        Route::post('/peserta/ujian/{examId}/submit', [PesertaExamController::class, 'submit'])
+            ->name('peserta.ujian.submit');
+    });
 
     // Kategori
     Route::middleware('role:admin')->group(function () {

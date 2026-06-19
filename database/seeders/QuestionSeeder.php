@@ -68,18 +68,22 @@ class QuestionSeeder extends Seeder
                 'benar' => 0
             ],
             [
-                'q' => 'Jelaskan pengertian Bhinneka Tunggal Ika dan bagaimana penerapannya dalam kehidupan bermasyarakat di era digital saat ini.',
+                'q' => 'Semboyan Bhinneka Tunggal Ika yang tertulis pada lambang negara Garuda Pancasila memiliki arti berbeda-beda tetapi tetap satu. Istilah ini pertama kali ditemukan dalam kitab...',
                 'kat' => 'TWK → Bhinneka Tunggal Ika',
-                'tipe' => 'essay',
+                'tipe' => 'pg',
                 'diff' => 'Sedang',
-                'poin' => 20
+                'poin' => 5,
+                'opts' => ['Kitab Sutasoma karya Mpu Tantular', 'Kitab Negarakertagama karya Mpu Prapanca', 'Kitab Bharatayuddha karya Mpu Sedah', 'Kitab Arjunawiwaha karya Mpu Kanwa', 'Kitab Ramayana'],
+                'benar' => 0
             ],
             [
-                'q' => 'Pernyataan: "Setiap warga negara wajib menjunjung hukum dan pemerintahan tanpa terkecuali." Pernyataan ini sesuai dengan UUD 1945 Pasal 27 Ayat 1.',
+                'q' => 'Setiap warga negara wajib menjunjung tinggi hukum dan pemerintahan dengan tidak ada kecualinya. Ketentuan ini secara tegas diatur dalam UUD 1945 pasal...',
                 'kat' => 'TWK → Nasionalisme',
-                'tipe' => 'tf',
+                'tipe' => 'pg',
                 'diff' => 'Mudah',
-                'poin' => 3
+                'poin' => 5,
+                'opts' => ['Pasal 27 ayat 1', 'Pasal 27 ayat 2', 'Pasal 27 ayat 3', 'Pasal 28 ayat 1', 'Pasal 30 ayat 1'],
+                'benar' => 0
             ],
             [
                 'q' => 'Berapakah hasil dari: 15% dari 840 ditambah 20% dari 650?',
@@ -91,11 +95,13 @@ class QuestionSeeder extends Seeder
                 'benar' => 0
             ],
             [
-                'q' => 'Pasangkan setiap lembaga negara dengan fungsinya yang paling tepat: DPR, MPR, MA, MK, KY.',
+                'q' => 'Lembaga negara yang memiliki wewenang untuk mengadili pada tingkat pertama dan terakhir yang putusannya bersifat final untuk menguji undang-undang terhadap Undang-Undang Dasar adalah...',
                 'kat' => 'TWK → Pancasila & UUD',
-                'tipe' => 'jodoh',
+                'tipe' => 'pg',
                 'diff' => 'Sedang',
-                'poin' => 10
+                'poin' => 5,
+                'opts' => ['Mahkamah Agung (MA)', 'Mahkamah Konstitusi (MK)', 'Komisi Yudisial (KY)', 'Dewan Perwakilan Rakyat (DPR)', 'Majelis Permusyawaratan Rakyat (MPR)'],
+                'benar' => 1
             ],
             [
                 'q' => 'Susunlah langkah-langkah berikut sesuai dengan prosedur pengaduan pelayanan publik yang benar berdasarkan UU No. 25 Tahun 2009.',
@@ -115,11 +121,13 @@ class QuestionSeeder extends Seeder
                 'benar' => [0, 1, 2, 3]
             ],
             [
-                'q' => 'Istilah "____" merujuk pada kemampuan seseorang dalam mengelola tugas dan tanggung jawab kerja secara efisien dan profesional.',
+                'q' => 'Kemampuan seseorang dalam mengelola tugas, wewenang, dan tanggung jawab pekerjaan secara efisien, objektif, dan beretika tanpa mencampuradukkan urusan pribadi merujuk pada prinsip...',
                 'kat' => 'TKP → Profesionalisme',
-                'tipe' => 'isian',
+                'tipe' => 'pg',
                 'diff' => 'Mudah',
-                'poin' => 3
+                'poin' => 5,
+                'opts' => ['Integritas diri', 'Nasionalisme kerja', 'Profesionalisme', 'Sosial budaya', 'Pelayanan publik'],
+                'benar' => 2
             ],
             [
                 'q' => 'Manakah di bawah ini yang BUKAN merupakan nilai-nilai dasar Bela Negara menurut UU No. 23 Tahun 2019 tentang Pengelolaan Sumber Daya Nasional?',
@@ -149,18 +157,22 @@ class QuestionSeeder extends Seeder
                 'benar' => 0
             ],
             [
-                'q' => 'Identifikasi minimal 3 tantangan utama birokrasi Indonesia dalam era transformasi digital dan jelaskan strategi konkret mengatasinya.',
+                'q' => 'Tantangan utama birokrasi dalam era transformasi digital adalah kesiapan infrastruktur dan literasi digital aparatur. Langkah strategis paling tepat untuk mempercepat hal ini adalah...',
                 'kat' => 'Diklat & Kompetensi → Kompetensi IT',
-                'tipe' => 'essay',
+                'tipe' => 'pg',
                 'diff' => 'Sulit',
-                'poin' => 25
+                'poin' => 5,
+                'opts' => ['Menghentikan rekrutmen pegawai baru non-IT', 'Melakukan pelatihan literasi digital berkelanjutan bagi seluruh pegawai', 'Membeli perangkat komputer tercanggih', 'Menyerahkan pengelolaan IT sepenuhnya ke pihak swasta', 'Meniadakan layanan tatap muka secara total'],
+                'benar' => 1
             ],
             [
-                'q' => 'Dalam konteks pelayanan publik, sistem "one stop service" bertujuan untuk meningkatkan efisiensi dan efektivitas layanan kepada masyarakat.',
+                'q' => 'Dalam meningkatkan kualitas pelayanan publik kepada masyarakat, pemerintah menerapkan sistem "One Stop Service" (Pelayanan Terpadu Satu Pintu). Tujuan utama dari penerapan sistem ini adalah...',
                 'kat' => 'TKP → Pelayanan Publik',
-                'tipe' => 'tf',
+                'tipe' => 'pg',
                 'diff' => 'Mudah',
-                'poin' => 3
+                'poin' => 5,
+                'opts' => ['Memusatkan kekuasaan administratif pada satu dinas', 'Memangkas birokrasi, menghemat waktu, dan menyederhanakan proses perizinan', 'Membatasi akses masyarakat terhadap kantor pemerintah', 'Meningkatkan pendapatan asli daerah secara sepihak', 'Menghilangkan fungsi pengawasan dari lembaga legislatif'],
+                'benar' => 1
             ],
         ];
 

@@ -27,7 +27,7 @@ class CanAccessExam
         }
 
         // Get exam ID from route parameters
-        $examId = $request->route('id') ?? $request->route('exam');
+        $examId = $request->route('id') ?? $request->route('exam') ?? $request->route('examId');
 
         if (!$examId) {
             return $next($request);
@@ -48,6 +48,16 @@ class CanAccessExam
             $participants = $exam->settings['participants'] ?? [];
             if (!is_array($participants) || !in_array($user->id, $participants)) {
                 abort(403, 'Anda tidak terdaftar/diundang dalam ujian ini.');
+            }
+
+            // Enforce attempts limit
+            $attemptsLimit = $exam->settings['attempts_limit'] ?? null;
+            if ($attemptsLimit !== null && $attemptsLimit > 0) {
+                $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+                $attemptsCount = collect($riwayat)->where('nama', $exam->title)->count();
+                if ($attemptsCount >= $attemptsLimit) {
+                    abort(403, 'Anda sudah mencapai batas maksimal percobaan untuk ujian ini.');
+                }
             }
         }
 

@@ -103,6 +103,17 @@ export default function PesertaDashboard({
                                         <OngoingExamCard exam={ongoingExam} />
                                     </>
                                 )}
+
+                                {/* Empty state when registered but all exams are completed/none active */}
+                                {!ongoingExam && (!availableExams || availableExams.length === 0) && (
+                                    <div className="peserta-empty-state">
+                                        <div className="peserta-empty-icon">🎉</div>
+                                        <h3 className="peserta-empty-title">Semua Ujian Selesai!</h3>
+                                        <p className="peserta-empty-desc">
+                                            Luar biasa! Anda telah menyelesaikan seluruh sesi ujian yang dijadwalkan untuk Anda. Silakan periksa bagian riwayat di bawah untuk melihat nilai dan detail kelulusan Anda.
+                                        </p>
+                                    </div>
+                                )}
                             </>
                         ) : (
                             <div className="peserta-empty-state">

@@ -35,6 +35,14 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
         if ($user && $user->role === 'peserta') {
+            $intended = redirect()->intended()->getTargetUrl();
+            if (preg_match('#/peserta/ujian/([^/]+)$#', $intended, $matches)) {
+                $examId = $matches[1];
+                if (strlen($examId) !== 26) {
+                    $request->session()->forget('url.intended');
+                    return redirect()->route('dashboard.peserta');
+                }
+            }
             return redirect()->intended(route('dashboard.peserta', absolute: false));
         }
 

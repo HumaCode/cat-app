@@ -131,6 +131,10 @@ class ExamSeeder extends Seeder
             ],
         ];
 
+        $twkCategory = \App\Models\Category::where('name', 'TWK')->first();
+        $tiuCategory = \App\Models\Category::where('name', 'TIU')->first();
+        $tkpCategory = \App\Models\Category::where('name', 'TKP')->first();
+
         foreach ($exams as $exam) {
             // Find participants registered to this exam in UserSeeder
             $participantIds = User::where('role', 'peserta')
@@ -164,6 +168,7 @@ class ExamSeeder extends Seeder
                     'seksi' => [
                         [
                             'title' => 'TWK — Tes Wawasan Kebangsaan',
+                            'category_id' => $twkCategory?->id,
                             'icon' => '📚',
                             'soal_count' => 30,
                             'duration' => 30,
@@ -173,6 +178,7 @@ class ExamSeeder extends Seeder
                         ],
                         [
                             'title' => 'TIU — Tes Intelegensia Umum',
+                            'category_id' => $tiuCategory?->id,
                             'icon' => '🔢',
                             'soal_count' => 35,
                             'duration' => 35,
@@ -182,6 +188,7 @@ class ExamSeeder extends Seeder
                         ],
                         [
                             'title' => 'TKP — Tes Karakteristik Pribadi',
+                            'category_id' => $tkpCategory?->id,
                             'icon' => '❤️',
                             'soal_count' => 45,
                             'duration' => 35,

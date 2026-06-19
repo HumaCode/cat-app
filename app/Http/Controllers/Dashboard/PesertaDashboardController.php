@@ -86,8 +86,23 @@ class PesertaDashboardController extends Controller
 
     private function getOngoingExam($user, $registeredExams): ?array
     {
-        // Find the first registered exam that has status 'aktif'
-        $exam = $registeredExams->first(fn($e) => $e->status === 'aktif');
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+
+        // Find the first registered exam that has status 'aktif' and has not reached attempt limit
+        $exam = $registeredExams->first(function($e) use ($riwayat) {
+            if ($e->status !== 'aktif') {
+                return false;
+            }
+            $attemptsLimit = $e->settings['attempts_limit'] ?? null;
+            if ($attemptsLimit !== null && $attemptsLimit > 0) {
+                $attemptsCount = collect($riwayat)->where('nama', $e->title)->count();
+                if ($attemptsCount >= $attemptsLimit) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
         if (!$exam) {
             return null;
         }
@@ -148,8 +163,22 @@ class PesertaDashboardController extends Controller
 
     private function getAvailableExams($user, $registeredExams): array
     {
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+
         // Filter registered exams to those that are active
         $exams = $registeredExams->filter(fn($e) => $e->status === 'aktif');
+
+        // Filter out exams that have reached their attempts limit
+        $exams = $exams->filter(function ($exam) use ($riwayat) {
+            $attemptsLimit = $exam->settings['attempts_limit'] ?? null;
+            if ($attemptsLimit !== null && $attemptsLimit > 0) {
+                $attemptsCount = collect($riwayat)->where('nama', $exam->title)->count();
+                if ($attemptsCount >= $attemptsLimit) {
+                    return false;
+                }
+            }
+            return true;
+        });
 
         return $exams->map(function ($exam) {
             $type = $exam->type ?? 'Latihan';

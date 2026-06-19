@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
 
 interface OngoingExam {
     id: string;
@@ -117,7 +118,12 @@ export default function OngoingExamCard({ exam }: OngoingExamCardProps) {
                             <span key={i} className="exam-tag">{tag}</span>
                         ))}
                     </div>
-                    <button className="btn-continue">▶ Lanjutkan Ujian</button>
+                    <button 
+                        className="btn-continue"
+                        onClick={() => router.visit(route('peserta.ujian.show', { examId: exam.id }))}
+                    >
+                        ▶ Lanjutkan Ujian
+                    </button>
                 </div>
             </div>
         </div>

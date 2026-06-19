@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
 
 interface AvailableExam {
     id: string;
@@ -97,6 +98,7 @@ export default function AvailableExamCard({ exams }: AvailableExamCardProps) {
                                 backgroundColor: exam.color, 
                                 boxShadow: `0 4px 14px ${exam.badge_color}4d` 
                             }}
+                            onClick={() => router.visit(route('peserta.ujian.show', { examId: exam.id }))}
                         >
                             Mulai Ujian →
                         </button>
