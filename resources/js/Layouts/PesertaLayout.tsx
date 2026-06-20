@@ -1,5 +1,5 @@
 import { useState, PropsWithChildren } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import ParticleCanvas from '@/Components/ParticleCanvas';
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal';
 import '../../css/peserta-dashboard.css';
@@ -20,6 +20,9 @@ export default function PesertaLayout({
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+    const { auth } = usePage().props as any;
+    const activeExamsCount = auth?.user?.active_exams_count || 0;
+
     const toggleMobileNav = () => {
         setMobileNavOpen(!mobileNavOpen);
     };
@@ -32,6 +35,14 @@ export default function PesertaLayout({
                 setShowLogoutModal(false);
             }
         });
+    };
+
+    const isCurrent = (routeName: string) => {
+        try {
+            return route().current(routeName);
+        } catch (e) {
+            return false;
+        }
     };
 
     return (
@@ -49,18 +60,20 @@ export default function PesertaLayout({
 
             {/* ═══ TOPBAR ═══ */}
             <header className="peserta-topbar">
-                <Link href="#" className="peserta-brand">
+                <Link href={route('dashboard.peserta')} className="peserta-brand">
                     <div className="brand-icon">C</div>
                     <span className="brand-name">CAT System</span>
                 </Link>
 
                 <nav className="peserta-nav">
-                    <Link href="#" className="nav-link active">
+                    <Link href={route('dashboard.peserta')} className={`nav-link ${isCurrent('dashboard.peserta') ? 'active' : ''}`}>
                         <span className="nav-icon">🏠</span> Beranda
                     </Link>
-                    <Link href="#" className="nav-link">
+                    <Link href={route('peserta.ujian-saya')} className={`nav-link ${isCurrent('peserta.ujian-saya') ? 'active' : ''}`}>
                         <span className="nav-icon">📋</span> Ujian Saya
-                        <span className="nav-pill rose">1</span>
+                        {activeExamsCount > 0 && (
+                            <span className="nav-pill rose">{activeExamsCount}</span>
+                        )}
                     </Link>
                     <Link href="#" className="nav-link">
                         <span className="nav-icon">📊</span> Hasil & Nilai
@@ -92,11 +105,14 @@ export default function PesertaLayout({
 
             {/* Mobile nav */}
             <div className={`mobile-nav ${mobileNavOpen ? 'open' : ''}`} id="mobileNav">
-                <Link href="#" className="nav-link active" onClick={toggleMobileNav}>
+                <Link href={route('dashboard.peserta')} className={`nav-link ${isCurrent('dashboard.peserta') ? 'active' : ''}`} onClick={toggleMobileNav}>
                     <span className="nav-icon">🏠</span> Beranda
                 </Link>
-                <Link href="#" className="nav-link" onClick={toggleMobileNav}>
+                <Link href={route('peserta.ujian-saya')} className={`nav-link ${isCurrent('peserta.ujian-saya') ? 'active' : ''}`} onClick={toggleMobileNav}>
                     <span className="nav-icon">📋</span> Ujian Saya
+                    {activeExamsCount > 0 && (
+                        <span className="nav-pill rose" style={{ marginLeft: '6px', position: 'static' }}>{activeExamsCount}</span>
+                    )}
                 </Link>
                 <Link href="#" className="nav-link" onClick={toggleMobileNav}>
                     <span className="nav-icon">📊</span> Hasil & Nilai

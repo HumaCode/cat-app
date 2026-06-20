@@ -60,6 +60,139 @@ class PesertaDashboardController extends Controller
         ]);
     }
 
+    /**
+     * Display the paginated list of participant's exams.
+     */
+    public function ujianSaya(Request $request): Response
+    {
+        $user = $request->user();
+
+        $query = \App\Models\Exam::with('category')
+            ->where('institution_id', $user->institution_id)
+            ->whereJsonContains('settings->participants', $user->id);
+
+        // Filter search
+        $search = $request->query('search');
+        if ($search) {
+            $query->where('title', 'like', '%' . $search . '%');
+        }
+
+        // Filter type
+        $type = $request->query('type');
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        // Sorting
+        $sort = $request->query('sort', 'latest');
+        if ($sort === 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($sort === 'title_asc') {
+            $query->orderBy('title', 'asc');
+        } elseif ($sort === 'title_desc') {
+            $query->orderBy('title', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $paginated = $query->paginate($request->query('per_page', 6))->withQueryString();
+
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+        $activeProgress = is_array($user->exam_data) && isset($user->exam_data['active_progress']) ? $user->exam_data['active_progress'] : [];
+
+        $paginated->getCollection()->transform(function ($exam) use ($riwayat, $activeProgress) {
+            $type = $exam->type ?? 'Latihan';
+            
+            // Styles based on type
+            if ($type === 'Resmi' || $type === 'Official') {
+                $color = '#BE123C';
+                $badgeBg = 'rgba(190,18,60,0.1)';
+                $badgeColor = '#BE123C';
+            } elseif ($type === 'Simulasi') {
+                $color = '#4338CA';
+                $badgeBg = 'rgba(67,56,202,0.1)';
+                $badgeColor = '#4338CA';
+            } else {
+                $color = '#0F766E';
+                $badgeBg = 'rgba(15,118,110,0.1)';
+                $badgeColor = '#0F766E';
+            }
+
+            if ($exam->passing_grade >= 75) {
+                $difficulty = '🔴 Sulit';
+            } elseif ($exam->passing_grade <= 60) {
+                $difficulty = '🟢 Mudah';
+            } else {
+                $difficulty = '🟡 Sedang';
+            }
+
+            $totalSoal = 0;
+            if (is_array($exam->settings) && isset($exam->settings['seksi'])) {
+                foreach ($exam->settings['seksi'] as $seksi) {
+                    $totalSoal += $seksi['soal_count'] ?? 0;
+                }
+            }
+            if ($totalSoal === 0) {
+                $totalSoal = 100;
+            }
+
+            $tags = [];
+            if ($exam->category) {
+                $tags[] = $exam->category->name;
+            } else {
+                $tags = ['TWK', 'TIU', 'TKP'];
+            }
+
+            $attemptsCount = collect($riwayat)->where('nama', $exam->title)->count();
+            $attemptsLimit = $exam->settings['attempts_limit'] ?? 0;
+
+            $statusLabel = 'Mulai';
+            $statusClass = 'muli';
+            $canStart = true;
+            $hasActiveProgress = (isset($activeProgress['exam_id']) && $activeProgress['exam_id'] === $exam->id);
+
+            if ($exam->status !== 'aktif') {
+                $statusLabel = 'Tidak Aktif';
+                $statusClass = 'inactive';
+                $canStart = false;
+            } elseif ($attemptsLimit > 0 && $attemptsCount >= $attemptsLimit) {
+                $statusLabel = 'Selesai';
+                $statusClass = 'completed';
+                $canStart = false;
+            } elseif ($hasActiveProgress) {
+                $statusLabel = 'Lanjutkan';
+                $statusClass = 'resume';
+            }
+
+            return [
+                'id'            => $exam->id,
+                'title'         => $exam->title,
+                'type'          => $type,
+                'difficulty'    => $difficulty,
+                'total_soal'    => $totalSoal,
+                'duration'      => $exam->duration,
+                'passing_grade' => $exam->passing_grade,
+                'has_pembahasan'=> $exam->settings['show_answers'] ?? true,
+                'max_attempts'  => $attemptsLimit,
+                'attempts_count'=> $attemptsCount,
+                'tags'          => $tags,
+                'color'         => $color,
+                'badge_bg'      => $badgeBg,
+                'badge_color'   => $badgeColor,
+                'status_label'  => $statusLabel,
+                'status_class'  => $statusClass,
+                'can_start'     => $canStart,
+                'has_active_progress' => $hasActiveProgress,
+            ];
+        });
+
+        return Inertia::render('Dashboard/Peserta/UjianSaya', [
+            'user' => $user->only('id', 'name', 'email', 'instansi', 'jabatan'),
+            'exams' => $paginated,
+            'filters' => (object) $request->only(['sort', 'search', 'type', 'per_page']),
+        ]);
+    }
+
     // ──────────────────────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────────────────────

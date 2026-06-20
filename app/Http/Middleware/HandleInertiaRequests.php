@@ -39,7 +39,21 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'active_exams_count' => $request->user()->role === 'peserta' ? \App\Models\Exam::where('institution_id', $request->user()->institution_id)
+                        ->where('status', 'aktif')
+                        ->whereJsonContains('settings->participants', $request->user()->id)
+                        ->get()
+                        ->filter(function ($exam) use ($request) {
+                            $riwayat = is_array($request->user()->exam_data) && isset($request->user()->exam_data['riwayat']) ? $request->user()->exam_data['riwayat'] : [];
+                            $attemptsLimit = $exam->settings['attempts_limit'] ?? 0;
+                            if ($attemptsLimit > 0) {
+                                $attemptsCount = collect($riwayat)->where('nama', $exam->title)->count();
+                                return $attemptsCount < $attemptsLimit;
+                            }
+                            return true;
+                        })->count() : 0
+                ]) : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

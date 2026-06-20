@@ -87,3 +87,76 @@ test('peserta dashboard shows exam when registered to an exam', function () {
             ->has('availableExams', 1)
         );
 });
+
+test('guest cannot access peserta ujian-saya page', function () {
+    $this->get(route('peserta.ujian-saya'))
+        ->assertRedirect('/login');
+});
+
+test('peserta can access peserta ujian-saya page', function () {
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('peserta.ujian-saya'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/UjianSaya')
+            ->has('exams.data')
+            ->has('exams.links')
+        );
+});
+
+test('peserta ujian-saya page shows empty state when not registered', function () {
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('peserta.ujian-saya'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/UjianSaya')
+            ->where('exams.data', [])
+        );
+});
+
+test('peserta ujian-saya page shows registered exams with pagination', function () {
+    $institution = \App\Models\Institution::create([
+        'name' => 'Test Institution 2',
+        'slug' => 'test-institution-2',
+    ]);
+
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+        'institution_id' => $institution->id,
+    ]);
+
+    // Create 3 exams
+    for ($i = 1; $i <= 3; $i++) {
+        \App\Models\Exam::create([
+            'institution_id' => $institution->id,
+            'user_id' => $peserta->id,
+            'title' => "Ujian Ke-" . $i,
+            'type' => 'Latihan',
+            'duration' => 60,
+            'passing_grade' => 60,
+            'status' => 'aktif',
+            'settings' => [
+                'participants' => [$peserta->id],
+                'show_answers' => true,
+            ],
+        ]);
+    }
+
+    $this->actingAs($peserta)
+        ->get(route('peserta.ujian-saya'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/UjianSaya')
+            ->has('exams.data', 3)
+            ->where('exams.total', 3)
+        );
+});
+
