@@ -250,8 +250,8 @@ export default function PreviewSoalModal({
 
     return createPortal(
         <div className="modal-overlay open" onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className="modal-card" style={{ maxWidth: '540px', textAlign: 'left' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'stretch', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-2)' }}>
+            <div className="modal-card" style={{ maxWidth: '640px', maxHeight: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'stretch', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-2)', flexShrink: 0 }}>
                     <div>
                         <h3 className="modal-title" style={{ margin: 0 }}>
                             Preview Soal — {TYPE_MAP[question.type] || question.type}
@@ -263,7 +263,7 @@ export default function PreviewSoalModal({
                     <button type="button" className="modal-close" onClick={onClose}>✕</button>
                 </div>
 
-                <div className="modal-body" style={{ padding: '20px 0' }}>
+                <div className="modal-body" style={{ padding: '20px 0', overflowY: 'auto', flex: 1 }}>
                     <div 
                         style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink)', lineHeight: '1.6', marginBottom: '16px' }}
                         dangerouslySetInnerHTML={{ __html: question.question_text }}
@@ -293,7 +293,7 @@ export default function PreviewSoalModal({
                     )}
                 </div>
 
-                <div className="modal-foot" style={{ padding: '14px 0 0', display: 'flex', justifyContent: 'flex-end' }}>
+                <div className="modal-foot" style={{ padding: '14px 0 0', display: 'flex', justifyContent: 'flex-end', flexShrink: 0, borderTop: '1px solid var(--border-2)' }}>
                     <button type="button" className="btn-modal cancel" onClick={onClose} style={{ flex: 'none', width: 'auto' }}>
                         Tutup
                     </button>

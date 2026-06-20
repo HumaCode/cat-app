@@ -46,6 +46,14 @@ Route::middleware('auth')->group(function () {
             ->name('peserta.ujian.show');
         Route::post('/peserta/ujian/{examId}/submit', [PesertaExamController::class, 'submit'])
             ->name('peserta.ujian.submit');
+        Route::post('/peserta/ujian/{examId}/save-progress', [PesertaExamController::class, 'saveProgress'])
+            ->name('peserta.ujian.save-progress');
+    });
+
+    // Ujian Peserta Pembahasan (Review)
+    Route::middleware('role:peserta')->group(function () {
+        Route::get('/peserta/ujian/{examId}/pembahasan', [PesertaExamController::class, 'pembahasan'])
+            ->name('peserta.ujian.pembahasan');
     });
 
     // Kategori

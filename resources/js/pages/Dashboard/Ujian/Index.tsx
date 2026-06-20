@@ -11,6 +11,7 @@ import RightPanel from './Components/RightPanel';
 import SubmitModal from './Components/SubmitModal';
 import ResultOverlay from './Components/ResultOverlay';
 import ViolationToast from './Components/ViolationToast';
+import FullscreenOverlay from './Components/FullscreenOverlay';
 
 interface QuestionOption {
     id: string;
@@ -61,19 +62,31 @@ interface ExamIndexProps {
     exam: Exam;
     sections: Section[];
     user: User;
+    savedAnswers?: Record<string, string | null>;
+    savedFlagged?: Record<string, boolean>;
+    timeLeftSeconds?: number;
 }
 
-export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps) {
+export default function ExamIndex({
+    exam,
+    sections = [],
+    user,
+    savedAnswers = {},
+    savedFlagged = {},
+    timeLeftSeconds: initialTimeLeft,
+}: ExamIndexProps) {
     const [examStarted, setExamStarted] = useState(false);
     const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
 
     // Answers and Flagged states mapped by Question ID
-    const [answersState, setAnswersState] = useState<Record<string, string | null>>({});
-    const [flaggedState, setFlaggedState] = useState<Record<string, boolean>>({});
+    const [answersState, setAnswersState] = useState<Record<string, string | null>>(() => savedAnswers);
+    const [flaggedState, setFlaggedState] = useState<Record<string, boolean>>(() => savedFlagged);
 
     // Timer state
-    const [timeLeftSeconds, setTimeLeftSeconds] = useState(exam.duration * 60);
+    const [timeLeftSeconds, setTimeLeftSeconds] = useState(() => {
+        return initialTimeLeft !== undefined ? initialTimeLeft : exam.duration * 60;
+    });
 
     // Modal and Overlay state
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
@@ -87,6 +100,26 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
     // Timeout ref for auto-next transition
     const autoNextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Fullscreen state & helper
+    const [isFullscreenActive, setIsFullscreenActive] = useState(false);
+
+    const requestFullscreen = () => {
+        const element = document.documentElement;
+        if (element.requestFullscreen) {
+            element.requestFullscreen()
+                .then(() => setIsFullscreenActive(true))
+                .catch((err) => {
+                    console.warn("Fullscreen request blocked or failed:", err);
+                });
+        }
+    };
+
+    useEffect(() => {
+        document.body.classList.add('exam-lockdown');
+        return () => {
+            document.body.classList.remove('exam-lockdown');
+        };
+    }, []);
 
     // Flattened questions list to count totals
     const totalQuestions = sections.reduce((acc, sec) => acc + sec.questions.length, 0);
@@ -120,6 +153,37 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
         }
     }, [showViolationToast]);
 
+    // Real-time autosave
+    useEffect(() => {
+        if (!examStarted) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        const timer = setTimeout(() => {
+            fetch(route('peserta.ujian.save-progress', { examId: exam.id }), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    answers: answersState,
+                    flagged: flaggedState,
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Progress auto-saved successfully:', data);
+            })
+            .catch(err => {
+                console.error('Failed to auto-save progress:', err);
+            });
+        }, 1000); // Debounce saves by 1 second
+
+        return () => clearTimeout(timer);
+    }, [answersState, flaggedState, examStarted]);
+
     // Timer countdown loop
     useEffect(() => {
         if (!examStarted || resultOverlayOpen) return;
@@ -144,7 +208,28 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
 
     // Anti-cheat mechanisms (lockdown & security behavior)
     useEffect(() => {
-        if (!examStarted || resultOverlayOpen || !exam.settings.lockdown_mode) return;
+        if (!examStarted || resultOverlayOpen) return;
+
+        const handleFullscreenChange = () => {
+            const isFS = !!document.fullscreenElement;
+            setIsFullscreenActive(isFS);
+
+            if (exam.settings.lockdown_mode && !isFS) {
+                setViolationCount((prev) => {
+                    const newCount = prev + 1;
+                    triggerViolation(`⚠️ Peringatan ${newCount}: Ujian harus dalam mode layar penuh (fullscreen)!`);
+                    return newCount;
+                });
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        if (!exam.settings.lockdown_mode) {
+            return () => {
+                document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            };
+        }
 
         // Visibility / Tab Change detection
         const handleVisibilityChange = () => {
@@ -181,6 +266,7 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('keydown', handleKeyDown);
@@ -190,6 +276,7 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
     // Handlers
     const handleStartExam = () => {
         setExamStarted(true);
+        requestFullscreen();
     };
 
     const handleSelectOption = (value: string) => {
@@ -276,6 +363,12 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
     };
 
     const handleReturnToDashboard = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch((err) => {
+                console.warn("Error exiting fullscreen:", err);
+            });
+        }
+
         let totalQuestions = 0;
         let correctCount = 0;
         let wrongCount = 0;
@@ -285,6 +378,7 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
             totalQuestions += sec.questions.length;
             sec.questions.forEach((q) => {
                 const answer = answersState[q.id];
+                const qType = q.type || 'pg';
                 if (answer === undefined || answer === null || answer === '') {
                     emptyCount++;
                 } else {
@@ -457,6 +551,12 @@ export default function ExamIndex({ exam, sections = [], user }: ExamIndexProps)
                 examTitle={exam.title}
                 passingGrade={exam.settings.passing_grade}
                 onReturnToDashboard={handleReturnToDashboard}
+            />
+
+            {/* Fullscreen Lockdown Overlay */}
+            <FullscreenOverlay
+                show={exam.settings.lockdown_mode && examStarted && !isFullscreenActive && !resultOverlayOpen}
+                onRestore={requestFullscreen}
             />
         </>
     );

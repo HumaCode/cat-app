@@ -189,6 +189,13 @@ export default function QuestionBody({
         }
     }, [question?.id]);
 
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+    // Reset drag state when question changes
+    useEffect(() => {
+        setDraggedIndex(null);
+    }, [question?.id]);
+
     if (!question) {
         return (
             <div className="question-panel" id="questionPanel">
@@ -337,79 +344,87 @@ export default function QuestionBody({
                 });
             }
 
-            const moveItem = (index: number, direction: 'up' | 'down') => {
-                const newOrdered = [...orderedOptions];
-                const targetIndex = direction === 'up' ? index - 1 : index + 1;
-                if (targetIndex >= 0 && targetIndex < newOrdered.length) {
-                    const temp = newOrdered[index];
-                    newOrdered[index] = newOrdered[targetIndex];
-                    newOrdered[targetIndex] = temp;
+            const handleDragStart = (index: number) => {
+                setDraggedIndex(index);
+            };
 
-                    // Serialize option IDs
-                    const serialized = newOrdered.map(o => o.id).join(',');
-                    onSelectOption(serialized);
-                }
+            const handleDragEnter = (targetIndex: number) => {
+                if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+                const newOrdered = [...orderedOptions];
+                const temp = newOrdered[draggedIndex];
+                newOrdered[draggedIndex] = newOrdered[targetIndex];
+                newOrdered[targetIndex] = temp;
+
+                // Update local drag pointer index
+                setDraggedIndex(targetIndex);
+
+                // Update answer state
+                const serialized = newOrdered.map(o => o.id).join(',');
+                onSelectOption(serialized);
+            };
+
+            const handleDragEnd = () => {
+                setDraggedIndex(null);
             };
 
             return (
                 <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--ink-3)', fontWeight: 500, marginBottom: '4px' }}>
-                        Urutkanlah langkah-langkah di bawah ini dengan benar (gunakan tombol ▲ dan ▼ untuk memindahkan posisi):
+                    <div style={{ fontSize: '13px', color: 'var(--ink-3)', fontWeight: 500, marginBottom: '8px' }}>
+                        Urutkanlah langkah-langkah di bawah ini dengan benar (tarik dan lepaskan/drag-and-drop untuk mengatur posisi):
                     </div>
                     {orderedOptions.map((opt, i) => {
+                        const isDragging = draggedIndex === i;
                         return (
                             <div 
-                                key={opt.id} 
+                                key={opt.id}
+                                draggable
+                                onDragStart={() => handleDragStart(i)}
+                                onDragEnter={() => handleDragEnter(i)}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDragEnd={handleDragEnd}
                                 style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     gap: '14px', 
-                                    background: 'var(--surface-2)', 
-                                    padding: '10px 16px', 
+                                    background: isDragging ? 'rgba(99, 102, 241, 0.05)' : 'var(--surface-2)', 
+                                    padding: '14px 18px', 
                                     borderRadius: 'var(--r-sm)',
-                                    border: '1.5px solid var(--border)'
+                                    border: isDragging ? '1.5px dashed var(--indigo)' : '1.5px solid var(--border)',
+                                    cursor: 'grab',
+                                    opacity: isDragging ? 0.6 : 1,
+                                    transform: isDragging ? 'scale(0.98)' : 'none',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isDragging ? 'none' : 'var(--shadow-xs)',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isDragging) {
+                                        e.currentTarget.style.borderColor = 'rgba(67, 56, 202, 0.3)';
+                                        e.currentTarget.style.background = 'var(--surface)';
+                                        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isDragging) {
+                                        e.currentTarget.style.borderColor = 'var(--border)';
+                                        e.currentTarget.style.background = 'var(--surface-2)';
+                                        e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+                                    }
                                 }}
                             >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => moveItem(i, 'up')}
-                                        disabled={i === 0}
-                                        style={{
-                                            padding: '2px 8px',
-                                            fontSize: '11px',
-                                            background: i === 0 ? 'var(--surface-3)' : 'var(--indigo-s)',
-                                            color: i === 0 ? 'var(--ink-4)' : 'var(--indigo)',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: '4px',
-                                            cursor: i === 0 ? 'not-allowed' : 'pointer',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        ▲
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => moveItem(i, 'down')}
-                                        disabled={i === orderedOptions.length - 1}
-                                        style={{
-                                            padding: '2px 8px',
-                                            fontSize: '11px',
-                                            background: i === orderedOptions.length - 1 ? 'var(--surface-3)' : 'var(--indigo-s)',
-                                            color: i === orderedOptions.length - 1 ? 'var(--ink-4)' : 'var(--indigo)',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: '4px',
-                                            cursor: i === orderedOptions.length - 1 ? 'not-allowed' : 'pointer',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        ▼
-                                    </button>
+                                {/* Drag Handle */}
+                                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--indigo)', opacity: 0.6, cursor: 'grab' }}>
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                        <circle cx="7" cy="6" r="1.5" />
+                                        <circle cx="7" cy="10" r="1.5" />
+                                        <circle cx="7" cy="14" r="1.5" />
+                                        <circle cx="13" cy="6" r="1.5" />
+                                        <circle cx="13" cy="10" r="1.5" />
+                                        <circle cx="13" cy="14" r="1.5" />
+                                    </svg>
                                 </div>
-                                <div style={{ fontSize: '11.5px', fontWeight: 800, background: 'var(--border)', color: 'var(--ink-2)', padding: '4px 8px', borderRadius: '4px' }}>
-                                    Posisi {i + 1}
-                                </div>
-                                <div style={{ flex: 1, fontSize: '14px', color: 'var(--ink)' }}>
+                                
+                                <div style={{ flex: 1, fontSize: '14.5px', color: 'var(--ink)', fontWeight: 600 }}>
                                     {opt.text}
                                 </div>
                             </div>

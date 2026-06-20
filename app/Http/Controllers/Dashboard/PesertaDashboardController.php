@@ -378,7 +378,11 @@ class PesertaDashboardController extends Controller
     {
         // Check if there is history in user's exam_data['riwayat']
         if (is_array($user->exam_data) && !empty($user->exam_data['riwayat'])) {
-            return collect($user->exam_data['riwayat'])->map(function ($h) {
+            // Pre-cache exams by title to avoid N+1 queries
+            $examTitles = collect($user->exam_data['riwayat'])->pluck('nama')->filter()->unique()->toArray();
+            $examsMap = \App\Models\Exam::whereIn('title', $examTitles)->pluck('id', 'title')->toArray();
+
+            return collect($user->exam_data['riwayat'])->map(function ($h) use ($examsMap) {
                 $score = $h['nilai'] ?? null;
                 $scoreClass = 'mid';
                 if ($score !== null) {
@@ -390,7 +394,13 @@ class PesertaDashboardController extends Controller
                 $status = $lulus ? 'Lulus' : 'Tidak Lulus';
                 $statusClass = $lulus ? 'lulus' : 'gagal';
 
+                $examId = $h['exam_id'] ?? null;
+                if (!$examId && isset($h['nama'])) {
+                    $examId = $examsMap[$h['nama']] ?? null;
+                }
+
                 return [
+                    'exam_id' => $examId,
                     'title' => $h['nama'] ?? 'Ujian',
                     'date' => $h['tgl'] ?? '—',
                     'score' => $score,
