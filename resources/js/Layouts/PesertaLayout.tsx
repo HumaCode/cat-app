@@ -75,7 +75,7 @@ export default function PesertaLayout({
                             <span className="nav-pill rose">{activeExamsCount}</span>
                         )}
                     </Link>
-                    <Link href="#" className="nav-link">
+                    <Link href={route('peserta.hasil-nilai')} className={`nav-link ${isCurrent('peserta.hasil-nilai') ? 'active' : ''}`}>
                         <span className="nav-icon">📊</span> Hasil & Nilai
                     </Link>
                     <Link href="#" className="nav-link">
@@ -114,7 +114,7 @@ export default function PesertaLayout({
                         <span className="nav-pill rose" style={{ marginLeft: '6px', position: 'static' }}>{activeExamsCount}</span>
                     )}
                 </Link>
-                <Link href="#" className="nav-link" onClick={toggleMobileNav}>
+                <Link href={route('peserta.hasil-nilai')} className={`nav-link ${isCurrent('peserta.hasil-nilai') ? 'active' : ''}`} onClick={toggleMobileNav}>
                     <span className="nav-icon">📊</span> Hasil & Nilai
                 </Link>
                 <Link href="#" className="nav-link" onClick={toggleMobileNav}>

@@ -160,3 +160,64 @@ test('peserta ujian-saya page shows registered exams with pagination', function 
         );
 });
 
+test('guest cannot access peserta hasil-nilai page', function () {
+    $this->get(route('peserta.hasil-nilai'))
+        ->assertRedirect('/login');
+});
+
+test('peserta can access peserta hasil-nilai page', function () {
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('peserta.hasil-nilai'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/HasilNilai')
+            ->has('stats')
+            ->has('history.data')
+            ->has('history.links')
+        );
+});
+
+test('peserta hasil-nilai page displays exam attempt history', function () {
+    $peserta = User::factory()->create([
+        'role' => 'peserta',
+        'exam_data' => [
+            'riwayat' => [
+                [
+                    'exam_id' => 'exam-1',
+                    'nama' => 'Ujian Kompetensi Dasar',
+                    'tgl' => '20 Jun 2026',
+                    'nilai' => 85.5,
+                    'lulus' => true
+                ],
+                [
+                    'exam_id' => 'exam-2',
+                    'nama' => 'Simulasi Tes TKP',
+                    'tgl' => '19 Jun 2026',
+                    'nilai' => 55.0,
+                    'lulus' => false
+                ]
+            ]
+        ]
+    ]);
+
+    $this->actingAs($peserta)
+        ->get(route('peserta.hasil-nilai'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Peserta/HasilNilai')
+            ->has('history.data', 2)
+            ->where('history.data.0.title', 'Ujian Kompetensi Dasar')
+            ->where('history.data.0.score', 85.5)
+            ->where('history.data.0.status', 'Lulus')
+            // Assert stats
+            ->where('stats.total_selesai', 2)
+            ->where('stats.total_lulus', 1)
+            ->where('stats.skor_tertinggi', 85.5)
+        );
+});
+
+

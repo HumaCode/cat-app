@@ -193,6 +193,101 @@ class PesertaDashboardController extends Controller
         ]);
     }
 
+    /**
+     * Display the paginated history of participant's results and scores.
+     */
+    public function hasilNilai(Request $request): Response
+    {
+        $user = $request->user();
+        $riwayat = is_array($user->exam_data) && isset($user->exam_data['riwayat']) ? $user->exam_data['riwayat'] : [];
+
+        // Apply search if provided
+        $search = $request->query('search');
+        if ($search) {
+            $riwayat = array_filter($riwayat, function ($r) use ($search) {
+                return isset($r['nama']) && stripos($r['nama'], $search) !== false;
+            });
+        }
+
+        // Apply status filter if provided
+        $status = $request->query('status'); // 'lulus', 'gagal'
+        if ($status) {
+            $isLulus = $status === 'lulus';
+            $riwayat = array_filter($riwayat, function ($r) use ($isLulus) {
+                return ($r['lulus'] ?? false) === $isLulus;
+            });
+        }
+
+        // Apply sorting
+        $sort = $request->query('sort', 'latest');
+        if ($sort === 'score_desc') {
+            usort($riwayat, fn($a, $b) => ($b['nilai'] ?? 0) <=> ($a['nilai'] ?? 0));
+        } elseif ($sort === 'score_asc') {
+            usort($riwayat, fn($a, $b) => ($a['nilai'] ?? 0) <=> ($b['nilai'] ?? 0));
+        } else {
+            // Keep default array prepended order (latest first)
+        }
+
+        // Re-index array keys to avoid serialization issues
+        $riwayat = array_values($riwayat);
+
+        // Paginate manually
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $perPage = intval($request->query('per_page', 8));
+        $offset = ($currentPage - 1) * $perPage;
+        
+        $currentItems = array_slice($riwayat, $offset, $perPage);
+        
+        // Fetch all exams in the history in one query to avoid N+1 queries
+        $examIds = collect($riwayat)->pluck('exam_id')->filter()->unique()->toArray();
+        $exams = \App\Models\Exam::whereIn('id', $examIds)->get()->keyBy('id');
+
+        $formattedItems = [];
+        foreach ($currentItems as $h) {
+            $examId = $h['exam_id'] ?? null;
+            $exam = $examId ? ($exams[$examId] ?? null) : null;
+
+            $score = $h['nilai'] ?? 0.0;
+            $scoreClass = 'mid';
+            if ($score >= 80) $scoreClass = 'high';
+            elseif ($score < 60) $scoreClass = 'low';
+
+            $lulus = $h['lulus'] ?? false;
+            $statusLabel = $lulus ? 'Lulus' : 'Tidak Lulus';
+            $statusClass = $lulus ? 'lulus' : 'gagal';
+
+            $formattedItems[] = [
+                'exam_id' => $examId,
+                'title' => $h['nama'] ?? 'Ujian',
+                'date' => $h['tgl'] ?? '—',
+                'score' => $score,
+                'score_class' => $scoreClass,
+                'status' => $statusLabel,
+                'status_class' => $statusClass,
+                'has_pembahasan' => $exam ? ($exam->settings['show_answers'] ?? true) : true,
+            ];
+        }
+
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $formattedItems,
+            count($riwayat),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+        );
+        $paginated->withQueryString();
+
+        // Calculate stats
+        $stats = $this->buildStats($user);
+
+        return Inertia::render('Dashboard/Peserta/HasilNilai', [
+            'user' => $user->only('id', 'name', 'email', 'instansi', 'jabatan'),
+            'stats' => $stats,
+            'history' => $paginated,
+            'filters' => (object) $request->only(['sort', 'search', 'status', 'per_page']),
+        ]);
+    }
+
     // ──────────────────────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────────────────────

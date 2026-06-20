@@ -50,12 +50,14 @@ Route::middleware('auth')->group(function () {
             ->name('peserta.ujian.save-progress');
     });
 
-    // Ujian Peserta Pembahasan (Review) & Ujian Saya list
+    // Ujian Peserta Pembahasan (Review) & Ujian Saya list & Hasil Ujian
     Route::middleware('role:peserta')->group(function () {
         Route::get('/peserta/ujian/{examId}/pembahasan', [PesertaExamController::class, 'pembahasan'])
             ->name('peserta.ujian.pembahasan');
         Route::get('/peserta/ujian-saya', [PesertaDashboardController::class, 'ujianSaya'])
             ->name('peserta.ujian-saya');
+        Route::get('/peserta/hasil-nilai', [PesertaDashboardController::class, 'hasilNilai'])
+            ->name('peserta.hasil-nilai');
     });
 
     // Kategori
